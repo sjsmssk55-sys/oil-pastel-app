@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오일파스텔 아트 스튜디오 (Oil Pastel Art Class)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nanum Gothic', sans-serif;
+      user-select: none;
+      background-color: #f3f4f6;
+    }
+    .canvas-container {
+      position: relative;
+      background-color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    canvas {
+      touch-action: none;
+    }
+    /* Custom Paper Grain Texture Overlay */
+    .paper-texture {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.15;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.6"/></svg>');
+    }
+    .tool-btn.active {
+      background-color: #4f46e5;
+      color: #ffffff;
+      border-color: #4338ca;
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c7d2fe;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #818cf8;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-gray-800">
+
+  <!-- Header Bar -->
+  <header class="bg-indigo-900 text-white px-6 py-3 flex items-center justify-between shadow-md z-10 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-indigo-700 rounded-lg shadow-inner">
+        <i class="fa-solid fa-palette text-xl text-amber-300"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold leading-none">오일파스텔 스튜디오</h1>
+        <p class="text-xs text-indigo-300 mt-1">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
+      </div>
+    </div>
+
+    <!-- Actions & User Badge -->
+    <div class="flex items-center space-x-3">
+      <!-- Undo / Clear -->
+      <div class="flex items-center bg-indigo-800/80 p-1 rounded-lg border border-indigo-700 space-x-1">
+        <button id="undo-btn" class="px-3 py-1.5 hover:bg-indigo-700 rounded text-xs flex items-center gap-1 transition" title="실행 취소">
+          <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">실행취소</span>
+        </button>
+        <button id="clear-btn" class="px-3 py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-xs flex items-center gap-1 transition" title="전체 지우기">
+          <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">전체 지우기</span>
+        </button>
+      </div>
+
+      <!-- Export & Padlet Buttons -->
+      <button id="download-btn" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-download"></i> 작품 저장
+      </button>
+
+      <button id="padlet-btn" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> 패들렛 제출
+      </button>
+
+      <!-- Student Badge -->
+      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-user-graduate text-amber-400"></i>
+        <span id="user-badge-text">로그인 필요</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 flex overflow-hidden">
+    
+    <!-- Left Sidebar: Tools & Properties -->
+    <aside class="w-80 bg-white border-r border-gray-200 p-4 flex flex-col space-y-5 overflow-y-auto shrink-0 shadow-inner">
+      
+      <!-- Techniques / Tools Selection -->
+      <div>
+        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-paintbrush text-indigo-600"></i> 오일파스텔 표현 기법
+        </h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button data-tool="basic" class="tool-btn active p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
+            <i class="fa-solid fa-pen-nib text-base"></i>
+            <span>기본 오일파스텔</span>
+          </button>
+          
+          <button data-tool="gradation" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
+            <i class="fa-solid fa-circle-half-stroke text-base"></i>
+            <span>그라데이션 붓</span>
+          </button>
+
+          <button data-tool="scratch" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
+            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+            <span>스크래치 툴</span>
+          </button>
+
+          <button data-tool="impasto" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
+            <i class="fa-solid fa-cubes-stacked text-base"></i>
+            <span>임파스토 (마띠에르)</span>
+          </button>
+
+          <button data-tool="smudge" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
+            <i class="fa-solid fa-hand-back-fist text-base text-amber-600"></i>
+            <span>스머지 (문지르기)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tool Specific Controls -->
+      <div id="tool-settings" class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 space-y-3">
+        <!-- Brush Size -->
+        <div>
+          <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
+            <span>붓 크기 (Thickness)</span>
+            <span id="brush-size-val" class="text-indigo-600">20px</span>
+          </div>
+          <input type="range" id="brush-size" min="5" max="80" value="20" class="w-full accent-indigo-600 cursor-pointer">
+        </div>
+
+        <!-- Brush Opacity -->
+        <div>
+          <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
+            <span>밀도/불투명도 (Opacity)</span>
+            <span id="brush-opacity-val" class="text-indigo-600">90%</span>
+          </div>
+          <input type="range" id="brush-opacity" min="10" max="100" value="90" class="w-full accent-indigo-600 cursor-pointer">
+        </div>
+
+        <!-- Gradation Brush Angle -->
+        <div id="gradation-angle-container" class="hidden border-t border-indigo-200 pt-3 mt-2">
+          <div class="flex justify-between items-center text-xs font-bold text-gray-700 mb-1">
+            <span class="flex items-center gap-1">
+              <i class="fa-solid fa-compass text-indigo-600"></i> 투톤 각도 (Angle)
+            </span>
+            <span id="gradation-angle-val" class="text-indigo-600">0°</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <input type="range" id="gradation-angle" min="0" max="360" value="0" class="w-full accent-indigo-600 cursor-pointer">
+            <div id="angle-preview" class="w-6 h-6 rounded-full border border-indigo-400 flex items-center justify-center bg-white shrink-0 shadow-sm">
+              <div id="angle-arrow" class="w-0.5 h-4 bg-indigo-600 transform origin-center"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Palette Selection -->
+      <div>
+        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-eye-dropper text-indigo-600"></i> 색상 선택 (Color Palette)
+        </h2>
+        
+        <div class="flex items-center space-x-3 mb-3 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+          <!-- Primary Color -->
+          <div class="flex-1 text-center">
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">주 색상 (Primary)</label>
+            <input type="color" id="primary-color" value="#2563eb" class="w-12 h-12 rounded-lg cursor-pointer border border-gray-300 shadow-sm p-0.5 bg-white">
+          </div>
+
+          <!-- Secondary Color (for Gradation) -->
+          <div id="secondary-color-box" class="flex-1 text-center opacity-40">
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">보조 색상 (Gradation)</label>
+            <input type="color" id="secondary-color" value="#a855f7" class="w-12 h-12 rounded-lg cursor-pointer border border-gray-300 shadow-sm p-0.5 bg-white">
+          </div>
+        </div>
+
+        <!-- Quick Palette Presets -->
+        <div class="grid grid-cols-7 gap-1.5" id="color-presets">
+          <!-- Colors generated dynamically -->
+        </div>
+      </div>
+
+      <!-- Guide / Tip Box -->
+      <div class="mt-auto bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
+        <p class="font-bold flex items-center gap-1 mb-1">
+          <i class="fa-solid fa-lightbulb text-amber-600"></i> 기법 활용 팁
+        </p>
+        <p id="tip-text">
+          보라 ➔ 연두 ➔ 파랑 순서로 색을 겹쳐칠한 뒤 <b>스크래치 툴</b>로 긁어보세요! 첫 번째 긁기는 연두색, 동일 부위 두 번째 긁기는 보라색, 세 번째 긁기는 흰색 바탕이 드러납니다.
+        </p>
+      </div>
+    </aside>
+
+    <!-- Center: Main Drawing Canvas -->
+    <section class="flex-1 bg-gray-200 p-4 flex flex-col items-center justify-center relative overflow-hidden">
+      
+      <!-- Top Canvas Controls Toolbar (Placed outside canvas area) -->
+      <div class="w-[900px] max-w-full mb-2 flex items-center justify-between px-1">
+        <div class="text-xs font-bold text-gray-600 flex items-center gap-1.5">
+          <i class="fa-solid fa-paint-roller text-indigo-600"></i>
+          <span>캔버스 영역</span>
+        </div>
+        
+        <!-- Zoom & Pan HUD Overlay Controls -->
+        <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
+          <button id="pan-tool-btn" class="px-2.5 py-1 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 rounded-lg text-xs font-bold transition flex items-center gap-1" title="화면 이동 (손바닥 툴 / 스페이스바)">
+            <i class="fa-solid fa-hand"></i>
+            <span class="hidden sm:inline">이동</span>
+          </button>
+          <div class="h-3.5 w-px bg-gray-200"></div>
+          <button id="zoom-out-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="축소">
+            <i class="fa-solid fa-magnifying-glass-minus"></i>
+          </button>
+          <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-1 min-w-[36px] text-center">100%</span>
+          <button id="zoom-in-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="확대">
+            <i class="fa-solid fa-magnifying-glass-plus"></i>
+          </button>
+          <button id="zoom-reset-btn" class="p-1 hover:bg-gray-100 text-gray-500 rounded-lg text-xs transition" title="원래 크기 (100%)">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair w-[900px] h-[650px] max-w-full max-h-full">
+        <!-- Shortcut Tip Badge -->
+        <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-amber-400"></i>
+          <span>휠: 확대/축소 | 스페이스바 + 드래그: 화면 이동</span>
+        </div>
+
+        <!-- Transform Layer for Canvas & Texture -->
+        <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
+          <!-- Main Interactive Canvas Layer -->
+          <canvas id="main-canvas" width="900" height="650" class="block w-full h-full"></canvas>
+          <div class="paper-texture"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Sidebar: Reference Photo & Color Picker Loupe -->
+    <aside class="w-80 bg-white border-l border-gray-200 p-4 flex flex-col space-y-4 overflow-y-auto shrink-0 shadow-inner">
+      <div>
+        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-image text-indigo-600"></i> 참고 그림 & 돋보기 스포이드
+        </h2>
+        
+        <!-- Upload Reference Button -->
+        <label class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl cursor-pointer transition mb-2">
+          <i class="fa-solid fa-upload"></i> 참고 이미지 업로드
+          <input type="file" id="ref-image-input" accept="image/*" class="hidden">
+        </label>
+
+        <!-- Reference Image Container with Zoom Loupe Magnifier -->
+        <div id="ref-image-container" class="relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden min-h-[220px] flex items-center justify-center group cursor-crosshair">
+          <img id="ref-image" class="hidden max-h-[300px] w-full object-contain cursor-crosshair select-none" alt="참고 이미지" title="클릭하여 색상을 추출하세요!">
+          
+          <!-- Floating Magnifier Zoom Loupe -->
+          <div id="magnifier-loupe" class="hidden fixed pointer-events-none w-28 h-28 rounded-full border-4 border-indigo-600 shadow-2xl overflow-hidden bg-white z-50 transform -translate-x-1/2 -translate-y-1/2">
+            <canvas id="loupe-canvas" width="112" height="112" class="w-full h-full block"></canvas>
+            <!-- Center Target Crosshair -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div class="w-3 h-3 rounded-full border-2 border-red-500 bg-red-500/20 shadow"></div>
+            </div>
+          </div>
+
+          <div id="ref-placeholder" class="text-center p-4 text-gray-400">
+            <i class="fa-solid fa-photo-film text-3xl mb-1"></i>
+            <p class="text-xs font-bold">그릴 사진을 업로드하면<br>옆에 두고 그릴 수 있습니다.</p>
+            <p class="text-[11px] text-gray-400 mt-1">마우스를 올리면 돋보기가 작동하며<br>클릭 시 색상이 추출됩니다!</p>
+          </div>
+        </div>
+
+        <!-- Color Eyedropper Info Badge -->
+        <div id="eyedropper-badge" class="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2 flex items-center justify-between text-xs">
+          <span class="text-gray-600 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-pipette text-indigo-600"></i> 스포이드 추출 색:
+          </span>
+          <div class="flex items-center space-x-2">
+            <div id="picked-color-swatch" class="w-5 h-5 rounded-full border border-gray-300 bg-blue-600"></div>
+            <span id="picked-color-code" class="font-mono text-[11px] text-gray-700">#2563EB</span>
+          </div>
+        </div>
+
+        <!-- Extracted 10 Representative Colors Section -->
+        <div id="extracted-palette-section" class="mt-3 bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100 hidden">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-swatchbook text-indigo-600"></i> 이미지 대표 색상 (10가지)</span>
+            <span class="text-[10px] text-indigo-500 font-normal">클릭 시 색상 선택</span>
+          </span>
+          <div id="extracted-color-grid" class="grid grid-cols-5 gap-1.5">
+            <!-- 10 extracted color swatches dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Padlet Settings Modal Access -->
+      <div class="mt-auto border-t border-gray-200 pt-3">
+        <button id="padlet-settings-btn" class="w-full text-left text-xs text-gray-400 hover:text-indigo-600 flex items-center justify-between py-1">
+          <span><i class="fa-solid fa-gear"></i> 교사용 패들렛 URL 설정</span>
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Login Modal -->
+  <div id="login-modal" class="fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
+      <div class="text-center mb-5">
+        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+          <i class="fa-solid fa-paint-brush text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-gray-800">오일파스텔 스튜디오 입장</h3>
+        <p class="text-xs text-gray-500 mt-1">수업 참가를 위해 학번과 이름을 입력해주세요.</p>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">학번 (예: 20101)</label>
+          <input type="text" id="student-id" required placeholder="학번 5자리를 입력하세요" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">이름 (예: 홍길동)</label>
+          <input type="text" id="student-name" required placeholder="이름을 입력하세요" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition">
+          스튜디오 입장하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Padlet URL Setting Modal -->
+  <div id="padlet-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-xl p-5 w-full max-w-md">
+      <h3 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+        <i class="fa-solid fa-gear text-indigo-600"></i> 패들렛 제출 링크 설정
+      </h3>
+      <p class="text-xs text-gray-500 mb-3">선생님의 학급 패들렛(Padlet) 게시판 URL 주소를 등록해주세요.</p>
+      <input type="url" id="padlet-url-input" placeholder="https://padlet.com/..." class="w-full px-3 py-2 border rounded-xl text-xs mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <div class="flex justify-end space-x-2">
+        <button id="padlet-modal-cancel" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-300">취소</button>
+        <button id="padlet-modal-save" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-900/90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
+    <i class="fa-solid fa-circle-info text-amber-400"></i>
+    <span id="toast-msg">알림 메시지</span>
+  </div>
+
+  <script>
+    // --- Application State ---
+    const state = {
+      studentId: '',
+      studentName: '',
+      tool: 'basic', // basic, gradation, scratch, impasto, smudge
+      primaryColor: '#2563eb',
+      secondaryColor: '#a855f7',
+      brushSize: 20,
+      opacity: 0.9,
+      gradationAngle: 0, // 0 to 360 deg
+      padletUrl: 'https://padlet.com',
+      isDrawing: false,
+      lastX: 0,
+      lastY: 0,
+      history: [], // Stack of Canvas States for Undo
+      historyIndex: -1,
+      maxHistory: 10,
+      
+      // Canvas Zoom & Pan State
+      zoom: 1.0,
+      panX: 0,
+      panY: 0,
+      isPanToolActive: false,
+      isSpacePressed: false,
+      isPanning: false,
+      startMouseX: 0,
+      startMouseY: 0,
+
+      // Sequential Stroke Layer Stack for Realistic Peeling Scratch
+      strokeStack: [] // Each element: { canvas, ctx }
+    };
+
+    // Preset Colors
+    const PRESET_COLORS = [
+      '#ffffff', '#000000', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4',
+      '#2563eb', '#6366f1', '#a855f7', '#ec4899', '#78350f', '#a3e635', '#475569'
+    ];
+
+    // --- DOM Elements ---
+    const loginModal = document.getElementById('login-modal');
+    const loginForm = document.getElementById('login-form');
+    const studentIdInput = document.getElementById('student-id');
+    const studentNameInput = document.getElementById('student-name');
+    const userBadgeText = document.getElementById('user-badge-text');
+
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    const transformLayer = document.getElementById('canvas-transform-layer');
+    const mainCanvas = document.getElementById('main-canvas');
+    const mainCtx = mainCanvas.getContext('2d');
+
+    const panToolBtn = document.getElementById('pan-tool-btn');
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const zoomResetBtn = document.getElementById('zoom-reset-btn');
+    const zoomVal = document.getElementById('zoom-val');
+
+    const primaryColorInput = document.getElementById('primary-color');
+    const secondaryColorInput = document.getElementById('secondary-color');
+    const secondaryColorBox = document.getElementById('secondary-color-box');
+    const colorPresetsContainer = document.getElementById('color-presets');
+
+    const brushSizeInput = document.getElementById('brush-size');
+    const brushSizeVal = document.getElementById('brush-size-val');
+    const brushOpacityInput = document.getElementById('brush-opacity');
+    const brushOpacityVal = document.getElementById('brush-opacity-val');
+
+    const gradationAngleContainer = document.getElementById('gradation-angle-container');
+    const gradationAngleInput = document.getElementById('gradation-angle');
+    const gradationAngleVal = document.getElementById('gradation-angle-val');
+    const angleArrow = document.getElementById('angle-arrow');
+
+    const refImageContainer = document.getElementById('ref-image-container');
+    const refImageInput = document.getElementById('ref-image-input');
+    const refImage = document.getElementById('ref-image');
+    const refPlaceholder = document.getElementById('ref-placeholder');
+    const magnifierLoupe = document.getElementById('magnifier-loupe');
+    const loupeCanvas = document.getElementById('loupe-canvas');
+    const loupeCtx = loupeCanvas.getContext('2d');
+
+    const pickedColorSwatch = document.getElementById('picked-color-swatch');
+    const pickedColorCode = document.getElementById('picked-color-code');
+
+    const undoBtn = document.getElementById('undo-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const padletBtn = document.getElementById('padlet-btn');
+    const padletSettingsBtn = document.getElementById('padlet-settings-btn');
+    const padletModal = document.getElementById('padlet-modal');
+    const padletUrlInput = document.getElementById('padlet-url-input');
+    const padletModalSave = document.getElementById('padlet-modal-save');
+    const padletModalCancel = document.getElementById('padlet-modal-cancel');
+
+    const tipText = document.getElementById('tip-text');
+
+    loginForm.onsubmit = (e) => {
+      e.preventDefault();
+      const id = studentIdInput.value.trim();
+      const name = studentNameInput.value.trim();
+      if (!id || !name) {
+        showToast('학번과 이름을 모두 입력해주세요.');
+        return;
+      }
+      state.studentId = id;
+      state.studentName = name;
+      userBadgeText.innerText = `${id} ${name}`;
+      loginModal.classList.add('hidden');
+      showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
+    };
+
+    PRESET_COLORS.forEach(color => {
+      const btn = document.createElement('button');
+      btn.className = 'w-7 h-7 rounded-lg border border-gray-300 shadow-sm transition transform hover:scale-110';
+      btn.style.backgroundColor = color;
+      btn.onclick = () => {
+        state.primaryColor = color;
+        primaryColorInput.value = color;
+      };
+      colorPresetsContainer.appendChild(btn);
+    });
+
+    function updateTransform() {
+      transformLayer.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      zoomVal.innerText = `${Math.round(state.zoom * 100)}%`;
+      
+      if (state.isPanToolActive || state.isSpacePressed) {
+        canvasWrapper.style.cursor = state.isPanning ? 'grabbing' : 'grab';
+      } else {
+        canvasWrapper.style.cursor = 'crosshair';
+      }
+    }
+
+    function setZoom(newZoom) {
+      state.zoom = Math.min(Math.max(0.5, newZoom), 4.0);
+      updateTransform();
+    }
+
+    function resetZoomAndPan() {
+      state.zoom = 1.0;
+      state.panX = 0;
+      state.panY = 0;
+      updateTransform();
+    }
+
+    zoomInBtn.onclick = () => setZoom(state.zoom + 0.25);
+    zoomOutBtn.onclick = () => setZoom(state.zoom - 0.25);
+    zoomResetBtn.onclick = resetZoomAndPan;
+
+    panToolBtn.onclick = () => {
+      state.isPanToolActive = !state.isPanToolActive;
+      if (state.isPanToolActive) {
+        panToolBtn.classList.add('bg-indigo-100', 'text-indigo-700');
+        showToast('손바닥(이동) 툴 활성화. 드래그하여 캔버스를 이동하세요.');
+      } else {
+        panToolBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
+        showToast('그리기 모드로 복귀했습니다.');
+      }
+      updateTransform();
+    };
+
+    canvasWrapper.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      setZoom(state.zoom + delta);
+    }, { passive: false });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !state.isSpacePressed && document.activeElement.tagName !== 'INPUT') {
+        state.isSpacePressed = true;
+        updateTransform();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        state.isSpacePressed = false;
+        updateTransform();
+      }
+    });
+
+    function getCanvasCoords(e) {
+      const rect = mainCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (mainCanvas.width / rect.width),
+        y: (clientY - rect.top) * (mainCanvas.height / rect.height)
+      };
+    }
+
+    canvasWrapper.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || state.isPanToolActive || state.isSpacePressed) {
+        state.isPanning = true;
+        state.startMouseX = e.clientX - state.panX;
+        state.startMouseY = e.clientY - state.panY;
+        updateTransform();
+        return;
+      }
+
+      if (e.button === 0) {
+        const { x, y } = getCanvasCoords(e);
+        startDrawing(x, y);
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (state.isPanning) {
+        state.panX = e.clientX - state.startMouseX;
+        state.panY = e.clientY - state.startMouseY;
+        updateTransform();
+        return;
+      }
+
+      if (state.isDrawing) {
+        const { x, y } = getCanvasCoords(e);
+        draw(x, y);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (state.isPanning) {
+        state.isPanning = false;
+        updateTransform();
+      }
+      stopDrawing();
+    });
+
+    canvasWrapper.addEventListener('touchstart', (e) => {
+      if (state.isPanToolActive || state.isSpacePressed || e.touches.length > 1) {
+        state.isPanning = true;
+        state.startMouseX = e.touches[0].clientX - state.panX;
+        state.startMouseY = e.touches[0].clientY - state.panY;
+        return;
+      }
+
+      e.preventDefault();
+      const { x, y } = getCanvasCoords(e);
+      startDrawing(x, y);
+    }, { passive: false });
+
+    canvasWrapper.addEventListener('touchmove', (e) => {
+      if (state.isPanning) {
+        state.panX = e.touches[0].clientX - state.startMouseX;
+        state.panY = e.touches[0].clientY - state.startMouseY;
+        updateTransform();
+        return;
+      }
+
+      if (state.isDrawing) {
+        e.preventDefault();
+        const { x, y } = getCanvasCoords(e);
+        draw(x, y);
+      }
+    }, { passive: false });
+
+    canvasWrapper.addEventListener('touchend', () => {
+      state.isPanning = false;
+      stopDrawing();
+    });
+
+    function createNewStrokeLayer() {
+      const offscreen = document.createElement('canvas');
+      offscreen.width = mainCanvas.width;
+      offscreen.height = mainCanvas.height;
+      const oCtx = offscreen.getContext('2d');
+      return { canvas: offscreen, ctx: oCtx };
+    }
+
+    function renderCompositeCanvas() {
+      mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      // Base paper white
+      mainCtx.fillStyle = '#ffffff';
+      mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+
+      // Composite stroke layers from bottom to top
+      state.strokeStack.forEach(layer => {
+        mainCtx.drawImage(layer.canvas, 0, 0);
+      });
+    }
+
+    function saveHistoryState() {
+      const stackSnapshot = state.strokeStack.map(layer => {
+        const copy = createNewStrokeLayer();
+        copy.ctx.drawImage(layer.canvas, 0, 0);
+        return copy;
+      });
+
+      if (state.historyIndex < state.history.length - 1) {
+        state.history = state.history.slice(0, state.historyIndex + 1);
+      }
+      state.history.push(stackSnapshot);
+      if (state.history.length > state.maxHistory) {
+        state.history.shift();
+      }
+      state.historyIndex = state.history.length - 1;
+    }
+
+    function undo() {
+      if (state.historyIndex > 0) {
+        state.historyIndex--;
+        const snapshot = state.history[state.historyIndex];
+        state.strokeStack = snapshot.map(layer => {
+          const copy = createNewStrokeLayer();
+          copy.ctx.drawImage(layer.canvas, 0, 0);
+          return copy;
+        });
+        renderCompositeCanvas();
+        showToast('이전 단계로 돌아갔습니다.');
+      } else {
+        showToast('더 이상 취소할 단계가 없습니다.');
+      }
+    }
+
+    let currentActiveLayer = null;
+    let scratchTargetIndex = -1;
+
+    function startDrawing(x, y) {
+      state.isDrawing = true;
+      state.lastX = x;
+      state.lastY = y;
+
+      if (state.tool === 'scratch') {
+        scratchTargetIndex = findTopmostLayerIndexAt(x, y);
+      } else if (state.tool === 'smudge') {
+        if (state.strokeStack.length === 0) {
+          state.strokeStack.push(createNewStrokeLayer());
+        }
+        currentActiveLayer = state.strokeStack[state.strokeStack.length - 1];
+      } else {
+        currentActiveLayer = createNewStrokeLayer();
+        state.strokeStack.push(currentActiveLayer);
+        drawStroke(x, y, x, y, currentActiveLayer.ctx);
+        renderCompositeCanvas();
+      }
+    }
+
+    function draw(x, y) {
+      if (!state.isDrawing) return;
+
+      if (state.tool === 'scratch') {
+        peelStrokeAt(x, y);
+      } else if (state.tool === 'smudge') {
+        applySmudge(state.lastX, state.lastY, x, y, currentActiveLayer.ctx);
+      } else {
+        drawStroke(state.lastX, state.lastY, x, y, currentActiveLayer.ctx);
+      }
+
+      state.lastX = x;
+      state.lastY = y;
+      renderCompositeCanvas();
+    }
+
+    function stopDrawing() {
+      if (state.isDrawing) {
+        state.isDrawing = false;
+        currentActiveLayer = null;
+        scratchTargetIndex = -1;
+        saveHistoryState();
+      }
+    }
+
+    function findTopmostLayerIndexAt(x, y) {
+      for (let i = state.strokeStack.length - 1; i >= 0; i--) {
+        const ctx = state.strokeStack[i].ctx;
+        const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+        if (pixel[3] > 20) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    function peelStrokeAt(x, y) {
+      if (scratchTargetIndex < 0 || scratchTargetIndex >= state.strokeStack.length) {
+        scratchTargetIndex = findTopmostLayerIndexAt(x, y);
+      }
+
+      if (scratchTargetIndex >= 0) {
+        const targetCtx = state.strokeStack[scratchTargetIndex].ctx;
+        targetCtx.save();
+        targetCtx.globalCompositeOperation = 'destination-out';
+        targetCtx.beginPath();
+        targetCtx.arc(x, y, state.brushSize / 2, 0, Math.PI * 2);
+        targetCtx.fill();
+        targetCtx.restore();
+      }
+    }
+
+    function drawStroke(x1, y1, x2, y2, ctx) {
+      const dist = Math.hypot(x2 - x1, y2 - y1);
+      const step = Math.max(1, state.brushSize / 4);
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      for (let d = 0; d <= dist; d += step) {
+        const curX = x1 + Math.cos(angle) * d;
+        const curY = y1 + Math.sin(angle) * d;
+
+        if (state.tool === 'basic') {
+          drawPastelStamp(curX, curY, state.primaryColor, ctx);
+        } else if (state.tool === 'gradation') {
+          drawGradationStamp(curX, curY, ctx);
+        } else if (state.tool === 'impasto') {
+          drawImpastoStamp(curX, curY, ctx);
+        }
+      }
+    }
+
+    function drawPastelStamp(x, y, color, ctx) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = state.opacity * 0.4;
+      
+      const radius = state.brushSize / 2;
+      const count = Math.floor(radius * 8);
+
+      for (let i = 0; i < count; i++) {
+        const r = Math.random() * radius;
+        const theta = Math.random() * Math.PI * 2;
+        const px = x + r * Math.cos(theta);
+        const py = y + r * Math.sin(theta);
+        const dotSize = Math.random() * 2 + 1;
+
+        ctx.fillRect(px, py, dotSize, dotSize);
+      }
+      ctx.restore();
+    }
+
+    function drawGradationStamp(x, y, ctx) {
+      ctx.save();
+      ctx.globalAlpha = state.opacity * 0.5;
+      const radius = state.brushSize / 2;
+      const rad = (state.gradationAngle * Math.PI) / 180;
+      
+      const dirX = Math.cos(rad);
+      const dirY = Math.sin(rad);
+
+      const count = Math.floor(radius * 10);
+      for (let i = 0; i < count; i++) {
+        const rx = (Math.random() - 0.5) * 2 * radius;
+        const ry = (Math.random() - 0.5) * 2 * radius;
+        if (rx*rx + ry*ry > radius*radius) continue;
+
+        const dotProj = rx * dirX + ry * dirY;
+        const usePrimary = dotProj >= 0;
+
+        ctx.fillStyle = usePrimary ? state.primaryColor : state.secondaryColor;
+        ctx.fillRect(x + rx, y + ry, Math.random() * 2.5 + 1, Math.random() * 2.5 + 1);
+      }
+      ctx.restore();
+    }
+
+    function hexToRgb(hex) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16) || 0;
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+
+    function rgbToHex(r, g, b) {
+      const clamp = v => Math.min(255, Math.max(0, Math.round(v)));
+      return '#' + [r, g, b].map(v => clamp(v).toString(16).padStart(2, '0')).join('');
+    }
+
+    function adjustColorBrightness(hex, factor) {
+      const { r, g, b } = hexToRgb(hex);
+      return rgbToHex(r * factor, g * factor, b * factor);
+    }
+
+    function drawImpastoStamp(x, y, ctx) {
+      ctx.save();
+      const radius = state.brushSize / 2;
+      const baseColor = state.primaryColor;
+      
+      const highlightColor = adjustColorBrightness(baseColor, 1.4);
+      const shadowColor = adjustColorBrightness(baseColor, 0.6);
+      const midHighlight = adjustColorBrightness(baseColor, 1.2);
+      const midShadow = adjustColorBrightness(baseColor, 0.8);
+
+      // 1. Opaque Granular Base Layer
+      ctx.fillStyle = baseColor;
+      ctx.globalAlpha = state.opacity * 0.85;
+
+      const count = Math.floor(radius * 12);
+      for (let i = 0; i < count; i++) {
+        const r = Math.random() * radius;
+        const theta = Math.random() * Math.PI * 2;
+        const px = x + r * Math.cos(theta);
+        const py = y + r * Math.sin(theta);
+        const dotSize = Math.random() * 2.5 + 1.5;
+        ctx.fillRect(px, py, dotSize, dotSize);
+      }
+
+      // 2. Directional Knife/Stick Grooves (Matiere Ridges)
+      const streakAngle = -Math.PI / 4;
+      const cosA = Math.cos(streakAngle);
+      const sinA = Math.sin(streakAngle);
+
+      ctx.globalAlpha = state.opacity * 0.5;
+      const streakCount = Math.floor(radius * 1.5);
+      for (let i = 0; i < streakCount; i++) {
+        const offsetperp = (Math.random() - 0.5) * radius * 1.8;
+        const len = Math.random() * radius * 1.2 + radius * 0.4;
+        const startX = x - sinA * offsetperp - cosA * (len / 2);
+        const startY = y + cosA * offsetperp - sinA * (len / 2);
+
+        ctx.strokeStyle = midHighlight;
+        ctx.lineWidth = Math.random() * 1.8 + 1;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(startX + cosA * len, startY + sinA * len);
+        ctx.stroke();
+
+        ctx.strokeStyle = midShadow;
+        ctx.lineWidth = Math.random() * 1.5 + 0.8;
+        ctx.beginPath();
+        ctx.moveTo(startX + 1.2, startY + 1.2);
+        ctx.lineTo(startX + cosA * len + 1.2, startY + sinA * len + 1.2);
+        ctx.stroke();
+      }
+
+      // 3. Thick Pastel Crumbs & Clumps
+      const crumbCount = Math.floor(radius * 1.2);
+      for (let i = 0; i < crumbCount; i++) {
+        const cr = Math.random() * radius * 0.95;
+        const ctheta = Math.random() * Math.PI * 2;
+        const cx = x + cr * Math.cos(ctheta);
+        const cy = y + cr * Math.sin(ctheta);
+        const crumbSize = Math.random() * 3 + 2;
+
+        ctx.fillStyle = shadowColor;
+        ctx.globalAlpha = 0.55;
+        ctx.fillRect(cx + 1, cy + 1, crumbSize, crumbSize);
+
+        ctx.fillStyle = baseColor;
+        ctx.globalAlpha = 0.9;
+        ctx.fillRect(cx, cy, crumbSize, crumbSize);
+
+        ctx.fillStyle = highlightColor;
+        ctx.globalAlpha = 0.75;
+        ctx.fillRect(cx - 0.8, cy - 0.8, crumbSize * 0.6, crumbSize * 0.6);
+      }
+
+      ctx.restore();
+    }
+
+    function applySmudge(x1, y1, x2, y2, ctx) {
+      const radius = state.brushSize / 2;
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = radius * 2;
+      sampleCanvas.height = radius * 2;
+      const sCtx = sampleCanvas.getContext('2d');
+
+      sCtx.drawImage(
+        mainCanvas,
+        Math.max(0, x1 - radius), Math.max(0, y1 - radius), radius * 2, radius * 2,
+        0, 0, radius * 2, radius * 2
+      );
+
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.arc(x2, y2, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(sampleCanvas, x2 - radius, y2 - radius);
+      ctx.restore();
+    }
+
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.tool = btn.getAttribute('data-tool');
+
+        if (state.tool === 'gradation') {
+          gradationAngleContainer.classList.remove('hidden');
+          secondaryColorBox.classList.remove('opacity-40');
+        } else {
+          gradationAngleContainer.classList.add('hidden');
+          secondaryColorBox.classList.add('opacity-40');
+        }
+
+        const TIPS = {
+          basic: '기본 오일파스텔: 서걱거리는 특유의 질감 입자로 자유롭게 색을 표현하세요.',
+          gradation: '그라데이션 붓: 붓 하나에 2가지 색이 동시에 나오며 각도 슬라이더로 회전시킬 수 있습니다.',
+          scratch: '스크래치 툴: 겹쳐칠해진 오일파스텔을 긁어내면 바로 밑의 색상이 차례차례 벗겨져 나옵니다.',
+          impasto: '임파스토: 물감 덩어리가 도톰하게 뭉치는 3D 입체 질감(Matière) 효과를 연출합니다.',
+          smudge: '스머지: 손가락이나 찰필로 문지르듯 색상을 부드럽게 번지고 섞이게 만듭니다.'
+        };
+        tipText.innerHTML = TIPS[state.tool];
+      };
+    });
+
+    brushSizeInput.oninput = (e) => {
+      state.brushSize = parseInt(e.target.value);
+      brushSizeVal.innerText = `${state.brushSize}px`;
+    };
+
+    brushOpacityInput.oninput = (e) => {
+      state.opacity = parseInt(e.target.value) / 100;
+      brushOpacityVal.innerText = `${e.target.value}%`;
+    };
+
+    gradationAngleInput.oninput = (e) => {
+      state.gradationAngle = parseInt(e.target.value);
+      gradationAngleVal.innerText = `${state.gradationAngle}°`;
+      angleArrow.style.transform = `rotate(${state.gradationAngle}deg)`;
+    };
+
+    primaryColorInput.oninput = (e) => state.primaryColor = e.target.value;
+    secondaryColorInput.oninput = (e) => state.secondaryColor = e.target.value;
+
+    refImageInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          refImage.src = evt.target.result;
+          refImage.classList.remove('hidden');
+          refPlaceholder.classList.add('hidden');
+
+          refImage.onload = () => {
+            const extracted = extract10ColorsFromImage(refImage);
+            renderExtractedPalette(extracted);
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    function extract10ColorsFromImage(imgEl) {
+      try {
+        const sampleCanvas = document.createElement('canvas');
+        const sampleSize = 80;
+        sampleCanvas.width = sampleSize;
+        sampleCanvas.height = sampleSize;
+        const ctx = sampleCanvas.getContext('2d');
+        ctx.drawImage(imgEl, 0, 0, sampleSize, sampleSize);
+
+        const imgData = ctx.getImageData(0, 0, sampleSize, sampleSize).data;
+        const colorSamples = [];
+
+        for (let i = 0; i < imgData.length; i += 8) {
+          const r = imgData[i];
+          const g = imgData[i + 1];
+          const b = imgData[i + 2];
+          const a = imgData[i + 3];
+          if (a < 128) continue;
+          colorSamples.push([r, g, b]);
+        }
+
+        if (colorSamples.length === 0) return [];
+
+        const k = 10;
+        let centers = [];
+        for (let i = 0; i < k; i++) {
+          const idx = Math.floor((i / k) * colorSamples.length);
+          centers.push([...colorSamples[idx]]);
+        }
+
+        for (let iter = 0; iter < 5; iter++) {
+          const clusters = Array.from({ length: k }, () => []);
+          colorSamples.forEach(p => {
+            let minDist = Infinity;
+            let closestIdx = 0;
+            centers.forEach((c, idx) => {
+              const dist = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2;
+              if (dist < minDist) {
+                minDist = dist;
+                closestIdx = idx;
+              }
+            });
+            clusters[closestIdx].push(p);
+          });
+
+          centers = clusters.map((cluster, idx) => {
+            if (cluster.length === 0) return centers[idx];
+            let sumR = 0, sumG = 0, sumB = 0;
+            cluster.forEach(p => {
+              sumR += p[0];
+              sumG += p[1];
+              sumB += p[2];
+            });
+            return [
+              Math.round(sumR / cluster.length),
+              Math.round(sumG / cluster.length),
+              Math.round(sumB / cluster.length)
+            ];
+          });
+        }
+
+        return centers.map(c => '#' + c.map(v => Math.min(255, Math.max(0, v)).toString(16).padStart(2, '0')).join(''));
+      } catch (err) {
+        console.error('Palette extraction error:', err);
+        return [];
+      }
+    }
+
+    function renderExtractedPalette(colors) {
+      const container = document.getElementById('extracted-color-grid');
+      const section = document.getElementById('extracted-palette-section');
+      if (!container || !section) return;
+
+      container.innerHTML = '';
+      if (!colors || colors.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+
+      colors.forEach(hex => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full h-7 rounded-lg border border-gray-300 shadow-sm transition transform hover:scale-110 cursor-pointer';
+        btn.style.backgroundColor = hex;
+        btn.title = `색상 선택: ${hex.toUpperCase()}`;
+        btn.onclick = () => {
+          state.primaryColor = hex;
+          primaryColorInput.value = hex;
+          pickedColorSwatch.style.backgroundColor = hex;
+          pickedColorCode.innerText = hex.toUpperCase();
+          showToast(`대표 색상 선택: ${hex.toUpperCase()}`);
+        };
+        container.appendChild(btn);
+      });
+
+      section.classList.remove('hidden');
+    }
+
+    function updateLoupeAndPick(e, isClick) {
+      if (!refImage.src || refImage.classList.contains('hidden')) return;
+
+      const imgCanvas = document.createElement('canvas');
+      imgCanvas.width = refImage.naturalWidth;
+      imgCanvas.height = refImage.naturalHeight;
+      const ctx = imgCanvas.getContext('2d');
+      ctx.drawImage(refImage, 0, 0);
+
+      const rect = refImage.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+        magnifierLoupe.classList.add('hidden');
+        return;
+      }
+
+      const normX = (clientX - rect.left) / rect.width;
+      const normY = (clientY - rect.top) / rect.height;
+
+      const imgX = Math.floor(normX * imgCanvas.width);
+      const imgY = Math.floor(normY * imgCanvas.height);
+
+      const zoomSize = 18;
+      loupeCtx.imageSmoothingEnabled = false;
+      loupeCtx.clearRect(0, 0, loupeCanvas.width, loupeCanvas.height);
+      loupeCtx.drawImage(
+        imgCanvas,
+        Math.max(0, imgX - zoomSize / 2), Math.max(0, imgY - zoomSize / 2), zoomSize, zoomSize,
+        0, 0, loupeCanvas.width, loupeCanvas.height
+      );
+
+      magnifierLoupe.style.left = `${clientX}px`;
+      magnifierLoupe.style.top = `${clientY - 60}px`;
+      magnifierLoupe.classList.remove('hidden');
+
+      if (isClick) {
+        const pixel = ctx.getImageData(imgX, imgY, 1, 1).data;
+        const hexColor = `#${((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1)}`;
+
+        state.primaryColor = hexColor;
+        primaryColorInput.value = hexColor;
+        pickedColorSwatch.style.backgroundColor = hexColor;
+        pickedColorCode.innerText = hexColor.toUpperCase();
+
+        showToast(`스포이드 색상 추출: ${hexColor.toUpperCase()}`);
+      }
+    }
+
+    refImageContainer.addEventListener('mousemove', (e) => updateLoupeAndPick(e, false));
+    refImageContainer.addEventListener('mouseleave', () => magnifierLoupe.classList.add('hidden'));
+    refImageContainer.addEventListener('click', (e) => updateLoupeAndPick(e, true));
+
+    undoBtn.onclick = undo;
+
+    clearBtn.onclick = () => {
+      state.strokeStack = [];
+      saveHistoryState();
+      renderCompositeCanvas();
+      showToast('캔버스가 초기화되었습니다.');
+    };
+
+    downloadBtn.onclick = () => {
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = mainCanvas.width;
+      exportCanvas.height = mainCanvas.height;
+      const eCtx = exportCanvas.getContext('2d');
+
+      eCtx.drawImage(mainCanvas, 0, 0);
+
+      eCtx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+      eCtx.fillRect(15, mainCanvas.height - 45, 280, 30);
+      eCtx.fillStyle = '#ffffff';
+      eCtx.font = 'bold 13px "Nanum Gothic", sans-serif';
+      eCtx.fillText(`[오일파스텔 스튜디오] ${state.studentId} ${state.studentName}`, 25, mainCanvas.height - 25);
+
+      const link = document.createElement('a');
+      const fileName = state.studentId ? `${state.studentId}_${state.studentName}_오일파스텔.png` : 'my_oil_pastel.png';
+      link.download = fileName;
+      link.href = exportCanvas.toDataURL('image/png');
+      link.click();
+
+      showToast('작품이 이미지 파일로 저장되었습니다!');
+    };
+
+    padletBtn.onclick = () => {
+      window.open(state.padletUrl, '_blank');
+    };
+
+    padletSettingsBtn.onclick = () => {
+      padletUrlInput.value = state.padletUrl;
+      padletModal.classList.remove('hidden');
+    };
+
+    padletModalCancel.onclick = () => padletModal.classList.add('hidden');
+
+    padletModalSave.onclick = () => {
+      const url = padletUrlInput.value.trim();
+      if (url) {
+        state.padletUrl = url;
+        padletModal.classList.add('hidden');
+        showToast('패들렛 제출 링크가 저장되었습니다.');
+      }
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // Initialize Canvas State
+    saveHistoryState();
+    renderCompositeCanvas();
+  </script>
+</body>
+</html>
