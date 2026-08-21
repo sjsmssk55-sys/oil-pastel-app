@@ -23,7 +23,7 @@
       background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
       background-size: 16px 16px;
     }
-    canvas {
+    canvas, #canvas-wrapper {
       touch-action: none;
     }
     /* Custom Paper Grain Texture Overlay */
@@ -42,6 +42,55 @@
       color: #ffffff;
       border-color: #4338ca;
       box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    }
+    .color-target-btn {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      border-color: #e5e7eb;
+    }
+    .color-target-btn.active {
+      background-color: #4f46e5;
+      color: #ffffff;
+      border-color: #4338ca;
+    }
+    .orientation-btn.active {
+      background-color: #eef2ff;
+      color: #4338ca;
+    }
+    .mopv-swatch {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.12);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 1px;
+    }
+    .mopv-swatch:hover {
+      transform: scale(1.12);
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .mopv-swatch.selected {
+      outline: 2px solid #4f46e5;
+      outline-offset: 1px;
+      transform: scale(1.1);
+      z-index: 3;
+    }
+    .mopv-swatch span {
+      font-size: 7.5px;
+      font-weight: 800;
+      line-height: 1;
+      text-shadow: 0 0 2px rgba(0,0,0,0.35);
+      pointer-events: none;
+    }
+    /* Pressure Meter */
+    #pressure-meter-fill {
+      transition: width 0.05s linear, background-color 0.1s linear;
     }
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
@@ -162,6 +211,20 @@
           <input type="range" id="brush-opacity" min="10" max="100" value="90" class="w-full accent-indigo-600 cursor-pointer">
         </div>
 
+        <!-- Live Pressure Meter -->
+        <div class="border-t border-indigo-200 pt-2.5 mt-1">
+          <div class="flex justify-between items-center text-xs font-bold text-gray-700 mb-1">
+            <span class="flex items-center gap-1">
+              <i class="fa-solid fa-gauge-high text-indigo-600"></i> 필압 (Pressure)
+            </span>
+            <span id="pressure-meter-val" class="text-indigo-600">-</span>
+          </div>
+          <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+            <div id="pressure-meter-fill" class="h-full bg-indigo-500 rounded-full" style="width:0%"></div>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-1 leading-snug">펜/터치 필압을 지원하는 기기는 실제 압력을, 마우스는 그리는 속도(천천히=진하게, 빠르게=흐리게)를 반영합니다.</p>
+        </div>
+
         <!-- Gradation Brush Angle -->
         <div id="gradation-angle-container" class="hidden border-t border-indigo-200 pt-3 mt-2">
           <div class="flex justify-between items-center text-xs font-bold text-gray-700 mb-1">
@@ -199,9 +262,30 @@
           </div>
         </div>
 
-        <!-- Quick Palette Presets -->
-        <div class="grid grid-cols-7 gap-1.5" id="color-presets">
-          <!-- Colors generated dynamically -->
+        <!-- MOPV Oil Pastel Number Palette -->
+        <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+          <label class="block text-[11px] font-bold text-gray-600 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-hashtag text-indigo-500"></i> 오일파스텔 번호로 색상 선택 (MOPV 72색)
+          </label>
+
+          <!-- Number Search Input -->
+          <div class="flex gap-1.5 mb-2">
+            <input type="text" id="color-number-input" inputmode="numeric" placeholder="번호 입력 (예: 221)" class="flex-1 min-w-0 px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button id="color-number-apply" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shrink-0 transition">선택</button>
+          </div>
+
+          <!-- Apply Target Toggle (Primary / Secondary) -->
+          <div class="flex items-center gap-1.5 mb-2 text-[11px]">
+            <span class="font-bold text-gray-500">적용 대상</span>
+            <button data-target="primary" class="color-target-btn active px-2 py-1 rounded-md border font-bold transition">주 색상</button>
+            <button data-target="secondary" class="color-target-btn px-2 py-1 rounded-md border font-bold transition">보조 색상</button>
+          </div>
+
+          <!-- Full 72-Color Numbered Swatch Grid -->
+          <div id="mopv-color-grid" class="grid grid-cols-6 gap-1 max-h-52 overflow-y-auto p-1 bg-white rounded-lg border border-gray-200">
+            <!-- 72 numbered swatches generated dynamically -->
+          </div>
+          <p id="mopv-selected-info" class="mt-1.5 text-[11px] text-gray-500 font-semibold min-h-[14px]"></p>
         </div>
       </div>
 
@@ -220,33 +304,58 @@
     <section class="flex-1 bg-gray-200 p-4 flex flex-col items-center justify-center relative overflow-hidden">
       
       <!-- Top Canvas Controls Toolbar (Placed outside canvas area) -->
-      <div class="w-[900px] max-w-full mb-2 flex items-center justify-between px-1">
+      <div class="w-full max-w-[900px] mb-2 flex items-center justify-between px-1 flex-wrap gap-y-2">
         <div class="text-xs font-bold text-gray-600 flex items-center gap-1.5">
           <i class="fa-solid fa-paint-roller text-indigo-600"></i>
           <span>캔버스 영역</span>
+          <span id="canvas-size-label" class="text-gray-400 font-normal">A5 · 세로</span>
         </div>
-        
-        <!-- Zoom & Pan HUD Overlay Controls -->
-        <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
-          <button id="pan-tool-btn" class="px-2.5 py-1 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 rounded-lg text-xs font-bold transition flex items-center gap-1" title="화면 이동 (손바닥 툴 / 스페이스바)">
-            <i class="fa-solid fa-hand"></i>
-            <span class="hidden sm:inline">이동</span>
-          </button>
-          <div class="h-3.5 w-px bg-gray-200"></div>
-          <button id="zoom-out-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="축소">
-            <i class="fa-solid fa-magnifying-glass-minus"></i>
-          </button>
-          <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-1 min-w-[36px] text-center">100%</span>
-          <button id="zoom-in-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="확대">
-            <i class="fa-solid fa-magnifying-glass-plus"></i>
-          </button>
-          <button id="zoom-reset-btn" class="p-1 hover:bg-gray-100 text-gray-500 rounded-lg text-xs transition" title="원래 크기 (100%)">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
+
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+          <!-- Canvas Size & Orientation Controls -->
+          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
+            <i class="fa-solid fa-crop-simple text-gray-400 text-xs px-1"></i>
+            <select id="canvas-size-select" class="text-xs font-bold text-gray-700 bg-transparent focus:outline-none cursor-pointer pr-1" title="용지 비율 선택">
+              <option value="a5">A5</option>
+              <option value="a4">A4</option>
+              <option value="b5">B5</option>
+              <option value="square">정사각형 (1:1)</option>
+              <option value="4:3">4:3</option>
+              <option value="16:9">16:9</option>
+            </select>
+            <div class="h-3.5 w-px bg-gray-200"></div>
+            <button id="orientation-portrait-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="세로 방향">
+              <i class="fa-solid fa-file"></i>
+              <span class="hidden sm:inline">세로</span>
+            </button>
+            <button id="orientation-landscape-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="가로 방향">
+              <i class="fa-solid fa-file fa-rotate-90"></i>
+              <span class="hidden sm:inline">가로</span>
+            </button>
+          </div>
+
+          <!-- Zoom & Pan HUD Overlay Controls -->
+          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
+            <button id="pan-tool-btn" class="px-2.5 py-1 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 rounded-lg text-xs font-bold transition flex items-center gap-1" title="화면 이동 (손바닥 툴 / 스페이스바)">
+              <i class="fa-solid fa-hand"></i>
+              <span class="hidden sm:inline">이동</span>
+            </button>
+            <div class="h-3.5 w-px bg-gray-200"></div>
+            <button id="zoom-out-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="축소">
+              <i class="fa-solid fa-magnifying-glass-minus"></i>
+            </button>
+            <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-1 min-w-[36px] text-center">100%</span>
+            <button id="zoom-in-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="확대">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+            <button id="zoom-reset-btn" class="p-1 hover:bg-gray-100 text-gray-500 rounded-lg text-xs transition" title="원래 크기 (100%)">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair w-[900px] h-[650px] max-w-full max-h-full">
+      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair max-w-full max-h-full" style="width: 606px; height: 860px;">
         <!-- Shortcut Tip Badge -->
         <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
           <i class="fa-solid fa-circle-info text-amber-400"></i>
@@ -256,7 +365,7 @@
         <!-- Transform Layer for Canvas & Texture -->
         <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
           <!-- Main Interactive Canvas Layer -->
-          <canvas id="main-canvas" width="900" height="650" class="block w-full h-full"></canvas>
+          <canvas id="main-canvas" width="606" height="860" class="block w-full h-full"></canvas>
           <div class="paper-texture"></div>
         </div>
       </div>
@@ -407,13 +516,106 @@
       startMouseY: 0,
 
       // Sequential Stroke Layer Stack for Realistic Peeling Scratch
-      strokeStack: [] // Each element: { canvas, ctx }
+      strokeStack: [], // Each element: { canvas, ctx }
+
+      // Pen Pressure Simulation State
+      pressure: 0.6,           // current effective pressure (0.12 ~ 1.0)
+      lastMoveTime: 0,
+      lastMoveX: 0,
+      lastMoveY: 0,
+      colorTarget: 'primary',  // which slot the MOPV number palette writes to: 'primary' | 'secondary'
+
+      // Canvas Paper Size State
+      canvasPreset: 'a5',
+      canvasOrientation: 'portrait'
     };
 
-    // Preset Colors
-    const PRESET_COLORS = [
-      '#ffffff', '#000000', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4',
-      '#2563eb', '#6366f1', '#a855f7', '#ec4899', '#78350f', '#a3e635', '#475569'
+    // Canvas paper size presets: ratio = short side / long side (real paper proportions)
+    const CANVAS_SIZE_PRESETS = {
+      a5:     { label: 'A5',            ratio: 148 / 210 },
+      a4:     { label: 'A4',            ratio: 210 / 297 },
+      b5:     { label: 'B5',            ratio: 176 / 250 },
+      square: { label: '정사각형',       ratio: 1 },
+      '4:3':  { label: '4:3',           ratio: 3 / 4 },
+      '16:9': { label: '16:9',          ratio: 9 / 16 }
+    };
+    const CANVAS_LONG_EDGE = 860; // px, longer side of the canvas at any orientation
+
+    // MOPV 오일파스텔 72색 번호 팔레트
+    // 번호(num) / 색상명(name) / 실측 색상값(hex) - 제공된 컬러차트 이미지에서 색상을 추출하여 매핑
+    const MOPV_COLORS = [
+      { num: 201, name: 'Lemon Yellow', hex: '#f9f052' },
+      { num: 202, name: 'Yellow', hex: '#fee207' },
+      { num: 203, name: 'Orangish Yellow', hex: '#f9c462' },
+      { num: 204, name: 'Golden Yellow', hex: '#f19c00' },
+      { num: 205, name: 'Orange', hex: '#ef7f11' },
+      { num: 206, name: 'Flame Red', hex: '#e95304' },
+      { num: 207, name: 'Vermilion', hex: '#e72112' },
+      { num: 208, name: 'Scarlet', hex: '#e0132c' },
+      { num: 209, name: 'Carmine', hex: '#b91320' },
+      { num: 210, name: 'Purple', hex: '#a80f6b' },
+      { num: 211, name: 'Lilac', hex: '#49225d' },
+      { num: 212, name: 'Violet', hex: '#362365' },
+      { num: 213, name: 'Periwinkle Blue', hex: '#5e529f' },
+      { num: 214, name: 'Mauve', hex: '#8f549e' },
+      { num: 215, name: 'Light Purple Violet', hex: '#b395c5' },
+      { num: 216, name: 'Pink', hex: '#d67cad' },
+      { num: 217, name: 'Sky Blue', hex: '#7a92ca' },
+      { num: 218, name: 'Ultramarine Blue', hex: '#11338c' },
+      { num: 219, name: 'Prussian Blue', hex: '#123151' },
+      { num: 220, name: 'Sapphire', hex: '#0f3266' },
+      { num: 221, name: 'Cobalt Blue', hex: '#09519d' },
+      { num: 222, name: 'Light Blue', hex: '#188acc' },
+      { num: 223, name: 'Turquoise Blue', hex: '#1db6db' },
+      { num: 224, name: 'Turquoise Green', hex: '#13b3aa' },
+      { num: 225, name: 'Lime Green', hex: '#83c57d' },
+      { num: 226, name: 'Jade Green', hex: '#00a881' },
+      { num: 227, name: 'Yellow Green', hex: '#72bb48' },
+      { num: 228, name: 'Grass Green', hex: '#008e47' },
+      { num: 229, name: 'Emerald Green', hex: '#007045' },
+      { num: 230, name: 'Dark Green', hex: '#003923' },
+      { num: 231, name: 'Malachite Green', hex: '#00605d' },
+      { num: 232, name: 'Moss Green', hex: '#5c662e' },
+      { num: 233, name: 'Olive', hex: '#6f6334' },
+      { num: 234, name: 'Olive Brown', hex: '#795d34' },
+      { num: 235, name: 'Raw Umber', hex: '#492628' },
+      { num: 236, name: 'Brown', hex: '#652e21' },
+      { num: 237, name: 'Russet', hex: '#be4324' },
+      { num: 238, name: 'Ochre', hex: '#cea24c' },
+      { num: 239, name: 'Salmon Pink', hex: '#f19a76' },
+      { num: 240, name: 'Salmon', hex: '#f5b078' },
+      { num: 241, name: 'Light Olive', hex: '#9db31a' },
+      { num: 242, name: 'Olive Yellow', hex: '#b4a114' },
+      { num: 243, name: 'Pale Yellow', hex: '#fff4af' },
+      { num: 244, name: 'White', hex: '#fefefe' },
+      { num: 245, name: 'Light Grey', hex: '#b4cbd6' },
+      { num: 246, name: 'Grey', hex: '#90a09f' },
+      { num: 247, name: 'Dark Grey', hex: '#495957' },
+      { num: 248, name: 'Black', hex: '#010201' },
+      { num: 249, name: 'Silver Grey', hex: '#cdcac6' },
+      { num: 250, name: 'Pale Ochre', hex: '#e7b64e' },
+      { num: 251, name: 'Dark Yellow', hex: '#f7b31d' },
+      { num: 252, name: 'Golden Ochre', hex: '#d57f1b' },
+      { num: 253, name: 'Burnt Orange', hex: '#c96322' },
+      { num: 254, name: 'Grey Pink', hex: '#c49995' },
+      { num: 255, name: 'Light Mauve', hex: '#a090b6' },
+      { num: 256, name: 'Deep Salmon', hex: '#ed7361' },
+      { num: 257, name: 'Cold Pink', hex: '#dc1a7d' },
+      { num: 258, name: 'Rose Pink', hex: '#cd0451' },
+      { num: 259, name: 'Deep Magenta', hex: '#cf043d' },
+      { num: 260, name: 'Cadmium Red', hex: '#e23e4d' },
+      { num: 261, name: 'Azure Violet', hex: '#1a2067' },
+      { num: 262, name: 'Light Prussian Blue', hex: '#034177' },
+      { num: 263, name: 'Medium Azure Violet', hex: '#3960ac' },
+      { num: 264, name: 'Light Azure Violet', hex: '#76a4d6' },
+      { num: 265, name: 'Ice Blue', hex: '#a2d3f2' },
+      { num: 266, name: 'Pale Green', hex: '#a6d18a' },
+      { num: 267, name: 'Olive Light', hex: '#419735' },
+      { num: 268, name: 'Light Emerald Green', hex: '#0c8f5e' },
+      { num: 269, name: 'Light Moss Green', hex: '#1e612d' },
+      { num: 270, name: 'Green Grey', hex: '#2d4b56' },
+      { num: 271, name: 'Verona Green', hex: '#2e4b3f' },
+      { num: 272, name: 'Dark Cool Grey', hex: '#122e46' }
     ];
 
     // --- DOM Elements ---
@@ -428,6 +630,11 @@
     const mainCanvas = document.getElementById('main-canvas');
     const mainCtx = mainCanvas.getContext('2d');
 
+    const canvasSizeSelect = document.getElementById('canvas-size-select');
+    const orientationPortraitBtn = document.getElementById('orientation-portrait-btn');
+    const orientationLandscapeBtn = document.getElementById('orientation-landscape-btn');
+    const canvasSizeLabel = document.getElementById('canvas-size-label');
+
     const panToolBtn = document.getElementById('pan-tool-btn');
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
@@ -437,12 +644,19 @@
     const primaryColorInput = document.getElementById('primary-color');
     const secondaryColorInput = document.getElementById('secondary-color');
     const secondaryColorBox = document.getElementById('secondary-color-box');
-    const colorPresetsContainer = document.getElementById('color-presets');
+
+    const colorNumberInput = document.getElementById('color-number-input');
+    const colorNumberApplyBtn = document.getElementById('color-number-apply');
+    const mopvColorGrid = document.getElementById('mopv-color-grid');
+    const mopvSelectedInfo = document.getElementById('mopv-selected-info');
+    const colorTargetBtns = document.querySelectorAll('.color-target-btn');
 
     const brushSizeInput = document.getElementById('brush-size');
     const brushSizeVal = document.getElementById('brush-size-val');
     const brushOpacityInput = document.getElementById('brush-opacity');
     const brushOpacityVal = document.getElementById('brush-opacity-val');
+    const pressureMeterFill = document.getElementById('pressure-meter-fill');
+    const pressureMeterVal = document.getElementById('pressure-meter-val');
 
     const gradationAngleContainer = document.getElementById('gradation-angle-container');
     const gradationAngleInput = document.getElementById('gradation-angle');
@@ -487,16 +701,164 @@
       showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
     };
 
-    PRESET_COLORS.forEach(color => {
+    // --- MOPV Numbered Oil Pastel Palette Logic ---
+
+    // Perceived brightness -> decide light/dark label text color for contrast
+    function getContrastTextColor(hex) {
+      const { r, g, b } = hexToRgb(hex);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.6 ? '#1f2937' : '#ffffff';
+    }
+
+    function applyMopvColor(num, { silent = false } = {}) {
+      const color = MOPV_COLORS.find(c => c.num === num);
+      if (!color) {
+        if (!silent) showToast(`${num}번 오일파스텔 색상을 찾을 수 없습니다.`);
+        return false;
+      }
+
+      if (state.colorTarget === 'secondary') {
+        state.secondaryColor = color.hex;
+        secondaryColorInput.value = color.hex;
+      } else {
+        state.primaryColor = color.hex;
+        primaryColorInput.value = color.hex;
+      }
+
+      highlightMopvSwatch(num);
+      const targetLabel = state.colorTarget === 'secondary' ? '보조 색상' : '주 색상';
+      mopvSelectedInfo.innerText = `${targetLabel}: No.${color.num} ${color.name}`;
+      if (!silent) showToast(`${targetLabel} 선택: No.${color.num} ${color.name}`);
+      return true;
+    }
+
+    function highlightMopvSwatch(num) {
+      mopvColorGrid.querySelectorAll('.mopv-swatch').forEach(el => {
+        el.classList.toggle('selected', parseInt(el.dataset.num, 10) === num);
+      });
+    }
+
+    MOPV_COLORS.forEach(color => {
       const btn = document.createElement('button');
-      btn.className = 'w-7 h-7 rounded-lg border border-gray-300 shadow-sm transition transform hover:scale-110';
-      btn.style.backgroundColor = color;
-      btn.onclick = () => {
-        state.primaryColor = color;
-        primaryColorInput.value = color;
-      };
-      colorPresetsContainer.appendChild(btn);
+      btn.type = 'button';
+      btn.className = 'mopv-swatch';
+      btn.style.backgroundColor = color.hex;
+      btn.dataset.num = color.num;
+      btn.title = `No.${color.num} ${color.name}`;
+
+      const label = document.createElement('span');
+      label.innerText = color.num;
+      label.style.color = getContrastTextColor(color.hex);
+      btn.appendChild(label);
+
+      btn.onclick = () => applyMopvColor(color.num);
+      mopvColorGrid.appendChild(btn);
     });
+
+    colorTargetBtns.forEach(btn => {
+      btn.onclick = () => {
+        colorTargetBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.colorTarget = btn.getAttribute('data-target');
+      };
+    });
+
+    function submitColorNumber() {
+      const raw = colorNumberInput.value.trim();
+      const num = parseInt(raw, 10);
+      if (!raw || isNaN(num)) {
+        showToast('오일파스텔 번호를 숫자로 입력해주세요. (예: 221)');
+        return;
+      }
+      const applied = applyMopvColor(num);
+      if (applied) colorNumberInput.value = '';
+    }
+
+    colorNumberApplyBtn.onclick = submitColorNumber;
+    colorNumberInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitColorNumber();
+      }
+    });
+
+    // --- Canvas Paper Size & Orientation ---
+
+    function computeCanvasDimensions(presetKey, orientation) {
+      const preset = CANVAS_SIZE_PRESETS[presetKey] || CANVAS_SIZE_PRESETS.a5;
+      let w, h;
+      if (orientation === 'landscape') {
+        w = CANVAS_LONG_EDGE;
+        h = Math.round(CANVAS_LONG_EDGE * preset.ratio);
+      } else {
+        h = CANVAS_LONG_EDGE;
+        w = Math.round(CANVAS_LONG_EDGE * preset.ratio);
+      }
+      return { w, h, label: preset.label };
+    }
+
+    function updateCanvasSizeLabel() {
+      const { label } = computeCanvasDimensions(state.canvasPreset, state.canvasOrientation);
+      const orientLabel = state.canvasOrientation === 'portrait' ? '세로' : '가로';
+      canvasSizeLabel.innerText = `${label} · ${orientLabel}`;
+    }
+
+    function syncCanvasSizeControls() {
+      canvasSizeSelect.value = state.canvasPreset;
+      orientationPortraitBtn.classList.toggle('active', state.canvasOrientation === 'portrait');
+      orientationLandscapeBtn.classList.toggle('active', state.canvasOrientation === 'landscape');
+      updateCanvasSizeLabel();
+    }
+
+    function resizeCanvasTo(w, h) {
+      mainCanvas.width = w;
+      mainCanvas.height = h;
+      canvasWrapper.style.width = `${w}px`;
+      canvasWrapper.style.height = `${h}px`;
+
+      // Existing stroke layers were rendered at the old resolution, so start fresh.
+      state.strokeStack = [];
+      state.history = [];
+      state.historyIndex = -1;
+      saveHistoryState();
+      renderCompositeCanvas();
+      resetZoomAndPan();
+    }
+
+    function applyCanvasSizeChange(presetKey, orientation) {
+      const hasArtwork = state.strokeStack.length > 0;
+
+      if (hasArtwork) {
+        const proceed = confirm('캔버스 크기를 변경하면 현재 그림이 모두 지워집니다. 계속하시겠습니까?');
+        if (!proceed) {
+          syncCanvasSizeControls();
+          return;
+        }
+      }
+
+      state.canvasPreset = presetKey;
+      state.canvasOrientation = orientation;
+      const { w, h, label } = computeCanvasDimensions(presetKey, orientation);
+      resizeCanvasTo(w, h);
+      syncCanvasSizeControls();
+
+      const orientLabel = orientation === 'portrait' ? '세로' : '가로';
+      showToast(`캔버스 크기: ${label} · ${orientLabel} (${w}×${h}px)`);
+    }
+
+    canvasSizeSelect.onchange = (e) => {
+      applyCanvasSizeChange(e.target.value, state.canvasOrientation);
+    };
+
+    orientationPortraitBtn.onclick = () => {
+      if (state.canvasOrientation === 'portrait') return;
+      applyCanvasSizeChange(state.canvasPreset, 'portrait');
+    };
+
+    orientationLandscapeBtn.onclick = () => {
+      if (state.canvasOrientation === 'landscape') return;
+      applyCanvasSizeChange(state.canvasPreset, 'landscape');
+    };
 
     function updateTransform() {
       transformLayer.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
@@ -559,30 +921,77 @@
 
     function getCanvasCoords(e) {
       const rect = mainCanvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       return {
-        x: (clientX - rect.left) * (mainCanvas.width / rect.width),
-        y: (clientY - rect.top) * (mainCanvas.height / rect.height)
+        x: (e.clientX - rect.left) * (mainCanvas.width / rect.width),
+        y: (e.clientY - rect.top) * (mainCanvas.height / rect.height)
       };
     }
 
-    canvasWrapper.addEventListener('mousedown', (e) => {
+    // --- Pen/Touch Pressure Simulation ---
+    // Real pressure (pen/stylus with a force sensor) is used when available.
+    // For mouse or non-pressure touch input, pressure is simulated from drawing
+    // speed: slower strokes press harder (darker/denser), faster strokes are
+    // lighter (fainter/patchier) - mirrors how a real oil pastel behaves.
+    function computePressure(e, x, y) {
+      const now = performance.now();
+      let speedFactor = 0.6;
+
+      if (state.lastMoveTime) {
+        const dt = Math.max(1, now - state.lastMoveTime);
+        const dist = Math.hypot(x - state.lastMoveX, y - state.lastMoveY);
+        const speed = dist / dt; // px per ms
+        const norm = Math.min(1, speed / 2.2);
+        speedFactor = 1 - norm * 0.85; // slow -> ~1.0, fast -> ~0.15
+      }
+
+      state.lastMoveTime = now;
+      state.lastMoveX = x;
+      state.lastMoveY = y;
+
+      let pressure;
+      const hasRealPressure = (e.pointerType === 'pen' || e.pointerType === 'touch')
+        && typeof e.pressure === 'number' && e.pressure > 0 && e.pressure !== 0.5;
+
+      if (hasRealPressure) {
+        pressure = e.pressure * 0.75 + speedFactor * 0.25;
+      } else {
+        pressure = speedFactor;
+      }
+
+      state.pressure = Math.min(1, Math.max(0.12, pressure));
+      updatePressureMeter();
+      return state.pressure;
+    }
+
+    function updatePressureMeter() {
+      const pct = Math.round(state.pressure * 100);
+      pressureMeterFill.style.width = state.isDrawing ? `${pct}%` : '0%';
+      pressureMeterVal.innerText = state.isDrawing ? `${pct}%` : '-';
+      pressureMeterFill.style.backgroundColor = state.pressure > 0.7 ? '#4338ca' : (state.pressure > 0.4 ? '#6366f1' : '#a5b4fc');
+    }
+
+    canvasWrapper.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
+
       if (e.button === 1 || state.isPanToolActive || state.isSpacePressed) {
         state.isPanning = true;
         state.startMouseX = e.clientX - state.panX;
         state.startMouseY = e.clientY - state.panY;
+        canvasWrapper.setPointerCapture(e.pointerId);
         updateTransform();
         return;
       }
 
-      if (e.button === 0) {
+      if (e.button === 0 || e.pointerType !== 'mouse') {
+        canvasWrapper.setPointerCapture(e.pointerId);
         const { x, y } = getCanvasCoords(e);
-        startDrawing(x, y);
+        state.lastMoveTime = 0; // reset speed tracking for a fresh stroke
+        const pressure = computePressure(e, x, y);
+        startDrawing(x, y, pressure);
       }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    canvasWrapper.addEventListener('pointermove', (e) => {
       if (state.isPanning) {
         state.panX = e.clientX - state.startMouseX;
         state.panY = e.clientY - state.startMouseY;
@@ -592,50 +1001,29 @@
 
       if (state.isDrawing) {
         const { x, y } = getCanvasCoords(e);
-        draw(x, y);
+        const pressure = computePressure(e, x, y);
+        draw(x, y, pressure);
       }
     });
 
-    window.addEventListener('mouseup', () => {
+    function endPointerInteraction(e) {
       if (state.isPanning) {
         state.isPanning = false;
         updateTransform();
       }
       stopDrawing();
-    });
-
-    canvasWrapper.addEventListener('touchstart', (e) => {
-      if (state.isPanToolActive || state.isSpacePressed || e.touches.length > 1) {
-        state.isPanning = true;
-        state.startMouseX = e.touches[0].clientX - state.panX;
-        state.startMouseY = e.touches[0].clientY - state.panY;
-        return;
+      updatePressureMeter();
+      if (e && e.pointerId !== undefined && canvasWrapper.hasPointerCapture && canvasWrapper.hasPointerCapture(e.pointerId)) {
+        canvasWrapper.releasePointerCapture(e.pointerId);
       }
+    }
 
-      e.preventDefault();
-      const { x, y } = getCanvasCoords(e);
-      startDrawing(x, y);
-    }, { passive: false });
+    canvasWrapper.addEventListener('pointerup', endPointerInteraction);
+    canvasWrapper.addEventListener('pointercancel', endPointerInteraction);
 
-    canvasWrapper.addEventListener('touchmove', (e) => {
-      if (state.isPanning) {
-        state.panX = e.touches[0].clientX - state.startMouseX;
-        state.panY = e.touches[0].clientY - state.startMouseY;
-        updateTransform();
-        return;
-      }
-
-      if (state.isDrawing) {
-        e.preventDefault();
-        const { x, y } = getCanvasCoords(e);
-        draw(x, y);
-      }
-    }, { passive: false });
-
-    canvasWrapper.addEventListener('touchend', () => {
-      state.isPanning = false;
-      stopDrawing();
-    });
+    // Prevent default touch scrolling/gestures on the drawing surface
+    canvasWrapper.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    canvasWrapper.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
     function createNewStrokeLayer() {
       const offscreen = document.createElement('canvas');
@@ -693,13 +1081,17 @@
     let currentActiveLayer = null;
     let scratchTargetIndex = -1;
 
-    function startDrawing(x, y) {
+    function startDrawing(x, y, pressure) {
+      const p = typeof pressure === 'number' ? pressure : 0.6;
       state.isDrawing = true;
       state.lastX = x;
       state.lastY = y;
+      updatePressureMeter();
 
       if (state.tool === 'scratch') {
         scratchTargetIndex = findTopmostLayerIndexAt(x, y);
+        peelStrokeAt(x, y, p);
+        renderCompositeCanvas();
       } else if (state.tool === 'smudge') {
         if (state.strokeStack.length === 0) {
           state.strokeStack.push(createNewStrokeLayer());
@@ -708,20 +1100,21 @@
       } else {
         currentActiveLayer = createNewStrokeLayer();
         state.strokeStack.push(currentActiveLayer);
-        drawStroke(x, y, x, y, currentActiveLayer.ctx);
+        drawStroke(x, y, x, y, currentActiveLayer.ctx, p);
         renderCompositeCanvas();
       }
     }
 
-    function draw(x, y) {
+    function draw(x, y, pressure) {
       if (!state.isDrawing) return;
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
 
       if (state.tool === 'scratch') {
-        peelStrokeAt(x, y);
+        peelStrokeAt(x, y, p);
       } else if (state.tool === 'smudge') {
-        applySmudge(state.lastX, state.lastY, x, y, currentActiveLayer.ctx);
+        applySmudge(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
       } else {
-        drawStroke(state.lastX, state.lastY, x, y, currentActiveLayer.ctx);
+        drawStroke(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
       }
 
       state.lastX = x;
@@ -749,7 +1142,8 @@
       return -1;
     }
 
-    function peelStrokeAt(x, y) {
+    function peelStrokeAt(x, y, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       if (scratchTargetIndex < 0 || scratchTargetIndex >= state.strokeStack.length) {
         scratchTargetIndex = findTopmostLayerIndexAt(x, y);
       }
@@ -758,14 +1152,18 @@
         const targetCtx = state.strokeStack[scratchTargetIndex].ctx;
         targetCtx.save();
         targetCtx.globalCompositeOperation = 'destination-out';
+        // Light scratching only partially peels the layer (needs repeated passes);
+        // pressing hard peels it away in one pass, like a real fingernail/tool scratch.
+        targetCtx.globalAlpha = 0.3 + 0.7 * p;
         targetCtx.beginPath();
-        targetCtx.arc(x, y, state.brushSize / 2, 0, Math.PI * 2);
+        targetCtx.arc(x, y, (state.brushSize / 2) * (0.85 + 0.25 * p), 0, Math.PI * 2);
         targetCtx.fill();
         targetCtx.restore();
       }
     }
 
-    function drawStroke(x1, y1, x2, y2, ctx) {
+    function drawStroke(x1, y1, x2, y2, ctx, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       const dist = Math.hypot(x2 - x1, y2 - y1);
       const step = Math.max(1, state.brushSize / 4);
       const angle = Math.atan2(y2 - y1, x2 - x1);
@@ -775,45 +1173,50 @@
         const curY = y1 + Math.sin(angle) * d;
 
         if (state.tool === 'basic') {
-          drawPastelStamp(curX, curY, state.primaryColor, ctx);
+          drawPastelStamp(curX, curY, state.primaryColor, ctx, p);
         } else if (state.tool === 'gradation') {
-          drawGradationStamp(curX, curY, ctx);
+          drawGradationStamp(curX, curY, ctx, p);
         } else if (state.tool === 'impasto') {
-          drawImpastoStamp(curX, curY, ctx);
+          drawImpastoStamp(curX, curY, ctx, p);
         }
       }
     }
 
-    function drawPastelStamp(x, y, color, ctx) {
+    // Pressure (0.12 ~ 1.0) controls how faint/patchy (light press) versus
+    // dark/dense (hard press) each oil pastel stamp looks - fewer & fainter
+    // grain particles under light pressure, more & darker under heavy pressure.
+    function drawPastelStamp(x, y, color, ctx, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       ctx.save();
       ctx.fillStyle = color;
-      ctx.globalAlpha = state.opacity * 0.4;
-      
-      const radius = state.brushSize / 2;
-      const count = Math.floor(radius * 8);
+      ctx.globalAlpha = state.opacity * 0.4 * (0.35 + 0.85 * p);
+
+      const radius = (state.brushSize / 2) * (0.82 + 0.3 * p);
+      const count = Math.floor(radius * 8 * (0.4 + 0.85 * p));
 
       for (let i = 0; i < count; i++) {
         const r = Math.random() * radius;
         const theta = Math.random() * Math.PI * 2;
         const px = x + r * Math.cos(theta);
         const py = y + r * Math.sin(theta);
-        const dotSize = Math.random() * 2 + 1;
+        const dotSize = (Math.random() * 2 + 1) * (0.75 + 0.4 * p);
 
         ctx.fillRect(px, py, dotSize, dotSize);
       }
       ctx.restore();
     }
 
-    function drawGradationStamp(x, y, ctx) {
+    function drawGradationStamp(x, y, ctx, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       ctx.save();
-      ctx.globalAlpha = state.opacity * 0.5;
-      const radius = state.brushSize / 2;
+      ctx.globalAlpha = state.opacity * 0.5 * (0.35 + 0.85 * p);
+      const radius = (state.brushSize / 2) * (0.82 + 0.3 * p);
       const rad = (state.gradationAngle * Math.PI) / 180;
       
       const dirX = Math.cos(rad);
       const dirY = Math.sin(rad);
 
-      const count = Math.floor(radius * 10);
+      const count = Math.floor(radius * 10 * (0.4 + 0.85 * p));
       for (let i = 0; i < count; i++) {
         const rx = (Math.random() - 0.5) * 2 * radius;
         const ry = (Math.random() - 0.5) * 2 * radius;
@@ -823,7 +1226,8 @@
         const usePrimary = dotProj >= 0;
 
         ctx.fillStyle = usePrimary ? state.primaryColor : state.secondaryColor;
-        ctx.fillRect(x + rx, y + ry, Math.random() * 2.5 + 1, Math.random() * 2.5 + 1);
+        const dotSize = (Math.random() * 2.5 + 1) * (0.75 + 0.4 * p);
+        ctx.fillRect(x + rx, y + ry, dotSize, dotSize);
       }
       ctx.restore();
     }
@@ -845,9 +1249,10 @@
       return rgbToHex(r * factor, g * factor, b * factor);
     }
 
-    function drawImpastoStamp(x, y, ctx) {
+    function drawImpastoStamp(x, y, ctx, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       ctx.save();
-      const radius = state.brushSize / 2;
+      const radius = (state.brushSize / 2) * (0.82 + 0.3 * p);
       const baseColor = state.primaryColor;
       
       const highlightColor = adjustColorBrightness(baseColor, 1.4);
@@ -857,15 +1262,15 @@
 
       // 1. Opaque Granular Base Layer
       ctx.fillStyle = baseColor;
-      ctx.globalAlpha = state.opacity * 0.85;
+      ctx.globalAlpha = state.opacity * 0.85 * (0.4 + 0.8 * p);
 
-      const count = Math.floor(radius * 12);
+      const count = Math.floor(radius * 12 * (0.4 + 0.85 * p));
       for (let i = 0; i < count; i++) {
         const r = Math.random() * radius;
         const theta = Math.random() * Math.PI * 2;
         const px = x + r * Math.cos(theta);
         const py = y + r * Math.sin(theta);
-        const dotSize = Math.random() * 2.5 + 1.5;
+        const dotSize = (Math.random() * 2.5 + 1.5) * (0.8 + 0.35 * p);
         ctx.fillRect(px, py, dotSize, dotSize);
       }
 
@@ -874,8 +1279,8 @@
       const cosA = Math.cos(streakAngle);
       const sinA = Math.sin(streakAngle);
 
-      ctx.globalAlpha = state.opacity * 0.5;
-      const streakCount = Math.floor(radius * 1.5);
+      ctx.globalAlpha = state.opacity * 0.5 * (0.4 + 0.8 * p);
+      const streakCount = Math.floor(radius * 1.5 * (0.5 + 0.7 * p));
       for (let i = 0; i < streakCount; i++) {
         const offsetperp = (Math.random() - 0.5) * radius * 1.8;
         const len = Math.random() * radius * 1.2 + radius * 0.4;
@@ -898,31 +1303,32 @@
       }
 
       // 3. Thick Pastel Crumbs & Clumps
-      const crumbCount = Math.floor(radius * 1.2);
+      const crumbCount = Math.floor(radius * 1.2 * (0.45 + 0.75 * p));
       for (let i = 0; i < crumbCount; i++) {
         const cr = Math.random() * radius * 0.95;
         const ctheta = Math.random() * Math.PI * 2;
         const cx = x + cr * Math.cos(ctheta);
         const cy = y + cr * Math.sin(ctheta);
-        const crumbSize = Math.random() * 3 + 2;
+        const crumbSize = (Math.random() * 3 + 2) * (0.8 + 0.35 * p);
 
         ctx.fillStyle = shadowColor;
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.55 * (0.5 + 0.6 * p);
         ctx.fillRect(cx + 1, cy + 1, crumbSize, crumbSize);
 
         ctx.fillStyle = baseColor;
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = 0.9 * (0.45 + 0.65 * p);
         ctx.fillRect(cx, cy, crumbSize, crumbSize);
 
         ctx.fillStyle = highlightColor;
-        ctx.globalAlpha = 0.75;
+        ctx.globalAlpha = 0.75 * (0.5 + 0.6 * p);
         ctx.fillRect(cx - 0.8, cy - 0.8, crumbSize * 0.6, crumbSize * 0.6);
       }
 
       ctx.restore();
     }
 
-    function applySmudge(x1, y1, x2, y2, ctx) {
+    function applySmudge(x1, y1, x2, y2, ctx, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
       const radius = state.brushSize / 2;
       const sampleCanvas = document.createElement('canvas');
       sampleCanvas.width = radius * 2;
@@ -936,7 +1342,8 @@
       );
 
       ctx.save();
-      ctx.globalAlpha = 0.35;
+      // Harder pressure blends/spreads pigment more; a light touch barely smudges it.
+      ctx.globalAlpha = 0.18 + 0.35 * p;
       ctx.beginPath();
       ctx.arc(x2, y2, radius, 0, Math.PI * 2);
       ctx.clip();
@@ -1221,6 +1628,7 @@
     }
 
     // Initialize Canvas State
+    syncCanvasSizeControls();
     saveHistoryState();
     renderCompositeCanvas();
   </script>
