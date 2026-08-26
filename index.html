@@ -5,7 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>오일파스텔 아트 스튜디오 (Oil Pastel Art Class)</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com">
+    // --- Mobile Mode Logic & Mobile UI Handlers ---
+    function enableMobileMode() {
+      document.documentElement.classList.add('mobile-mode');
+      document.body.classList.add('mobile-mode');
+
+      const asides = document.querySelectorAll('main > aside');
+      if (asides.length >= 2) {
+        asides[0].classList.add('left-aside', 'mobile-panel-closed');
+        asides[1].classList.add('right-aside', 'mobile-panel-closed');
+      }
+
+      // Auto adjust canvas zoom for small screens
+      if (window.innerWidth < 640) {
+        state.zoom = Math.min(1.0, (window.innerWidth - 32) / mainCanvas.width);
+        updateTransform();
+      }
+
+      showToast('스마트폰 모바일 모드로 설정되었습니다.');
+    }
+
+    const leftAside = document.querySelectorAll('main > aside')[0];
+    const rightAside = document.querySelectorAll('main > aside')[1];
+
+    const mobileBtnTools = document.getElementById('mobile-btn-tools');
+    const mobileBtnCanvas = document.getElementById('mobile-btn-canvas');
+    const mobileBtnRef = document.getElementById('mobile-btn-ref');
+
+    if (mobileBtnTools && mobileBtnCanvas && mobileBtnRef) {
+      mobileBtnTools.onclick = () => {
+        if (leftAside) leftAside.classList.remove('mobile-panel-closed');
+        if (rightAside) rightAside.classList.add('mobile-panel-closed');
+        highlightMobileBtn('mobile-btn-tools');
+      };
+
+      mobileBtnCanvas.onclick = () => {
+        if (leftAside) leftAside.classList.add('mobile-panel-closed');
+        if (rightAside) rightAside.classList.add('mobile-panel-closed');
+        highlightMobileBtn('mobile-btn-canvas');
+      };
+
+      mobileBtnRef.onclick = () => {
+        if (rightAside) rightAside.classList.remove('mobile-panel-closed');
+        if (leftAside) leftAside.classList.add('mobile-panel-closed');
+        highlightMobileBtn('mobile-btn-ref');
+      };
+    }
+
+    function highlightMobileBtn(activeId) {
+      ['mobile-btn-tools', 'mobile-btn-canvas', 'mobile-btn-ref'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          if (id === activeId) {
+            btn.className = 'px-3.5 py-1.5 bg-indigo-600 text-white rounded-full flex items-center gap-1.5 transition';
+          } else {
+            btn.className = 'px-3.5 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1.5 transition';
+          }
+        }
+      });
+    }
+
+    // 2-Finger Pinch Zoom for Mobile Mode
+    let initialPinchDist = null;
+    let initialPinchZoom = 1.0;
+
+    canvasWrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2 && state.deviceMode === 'mobile') {
+        initialPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialPinchZoom = state.zoom;
+      }
+    }, { passive: true });
+
+    canvasWrapper.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && initialPinchDist && state.deviceMode === 'mobile') {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = currentDist / initialPinchDist;
+        setZoom(initialPinchZoom * factor);
+      }
+    }, { passive: true });
+
+    canvasWrapper.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        initialPinchDist = null;
+      }
+    });
+
+</script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts -->
@@ -155,146 +247,86 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 8px;
-      max-height: 250px;
+      max-height: 330px;
       overflow-y: auto;
       padding-right: 2px;
     }
     .impasto-preset {
-      min-height: 94px;
       border: 1px solid #334155;
       border-radius: 10px;
-      background: linear-gradient(145deg, #f6f4ef, #d9dde3);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+      background: #1e293b;
+      padding: 8px;
       display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 6px;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all .16s ease;
     }
-    .impasto-preset:hover { transform: translateY(-2px); border-color: #818cf8; }
+    .impasto-preset:hover {
+      border-color: #818cf8;
+      background: #283548;
+    }
     .impasto-preset.active {
       border: 2px solid #818cf8;
-      box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+      background: #312e81;
+      box-shadow: 0 0 10px rgba(99,102,241,.3);
     }
-    .impasto-preset .impasto-label {
-      position: relative;
-      z-index: 3;
-      font-size: 9px;
-      font-weight: 800;
-      color: #334155;
-      background: rgba(255,255,255,.78);
-      border-radius: 5px;
-      padding: 2px 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.12);
-      pointer-events: none;
+    .impasto-preset-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a5b4fc;
+      font-size: 12px;
+      flex-shrink: 0;
     }
-    .impasto-preset::before,
-    .impasto-preset::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
+  
+    /* --- Mobile Mode Layout Adjustments --- */
+    html.mobile-mode, body.mobile-mode {
+      height: 100dvh !important;
+      overflow: hidden !important;
+      overscroll-behavior: none !important;
     }
-
-    /* Dabbers — 둥글고 불규칙한 임파스토 덩어리 */
-    .impasto-preset[data-impasto-brush="1"]::before {
-      width: 62%;
-      height: 45%;
-      left: 19%;
-      top: 25%;
-      border-radius: 48% 52% 45% 55%;
-      background:
-        radial-gradient(ellipse at 34% 28%, rgba(255,255,255,.98) 0 12%, transparent 25%),
-        radial-gradient(ellipse at 58% 52%, rgba(255,255,255,.45) 0 10%, transparent 32%),
-        linear-gradient(145deg, rgba(255,255,255,.95), rgba(170,175,180,.95) 45%, rgba(78,84,92,.65) 100%);
-      transform: rotate(-9deg);
-      filter: drop-shadow(2px 3px 2px rgba(0,0,0,.28));
+    body.mobile-mode main {
+      flex-direction: column !important;
+      position: relative !important;
     }
-    .impasto-preset[data-impasto-brush="1"]::after {
-      width: 46%;
-      height: 18%;
-      left: 27%;
-      top: 37%;
-      border-radius: 50%;
-      background: repeating-linear-gradient(88deg, rgba(80,86,94,.25) 0 2px, transparent 2px 7px);
-      transform: rotate(-8deg);
-      opacity: .8;
+    body.mobile-mode aside {
+      width: 100% !important;
+      max-height: 55dvh !important;
+      position: fixed !important;
+      z-index: 45 !important;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.6) !important;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-
-    /* Thick Paints — 길고 두꺼운 물감 스트로크 */
-    .impasto-preset[data-impasto-brush="2"]::before {
-      width: 78%;
-      height: 28%;
-      left: 11%;
-      top: 30%;
-      border-radius: 48% 52% 45% 55%;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.98), rgba(207,211,214,.98) 38%, rgba(112,118,126,.72) 58%, rgba(242,243,242,.95) 72%, rgba(74,80,88,.38));
-      transform: rotate(-7deg);
-      filter: drop-shadow(2px 3px 2px rgba(0,0,0,.28));
+    body.mobile-mode aside.left-aside {
+      left: 0 !important;
+      bottom: 0 !important;
+      border-top: 2px solid rgba(129,140,248,0.3) !important;
+      border-right: none !important;
+      border-top-left-radius: 20px !important;
+      border-top-right-radius: 20px !important;
     }
-    .impasto-preset[data-impasto-brush="2"]::after {
-      width: 72%;
-      height: 21%;
-      left: 14%;
-      top: 34%;
-      background: repeating-linear-gradient(90deg, rgba(90,96,104,.20) 0 2px, transparent 2px 8px);
-      transform: rotate(-7deg);
-      opacity: .9;
+    body.mobile-mode aside.right-aside {
+      right: 0 !important;
+      bottom: 0 !important;
+      border-top: 2px solid rgba(129,140,248,0.3) !important;
+      border-left: none !important;
+      border-top-left-radius: 20px !important;
+      border-top-right-radius: 20px !important;
     }
-
-    /* Rakes — 평행한 갈퀴/빗살 결 */
-    .impasto-preset[data-impasto-brush="3"]::before {
-      width: 78%;
-      height: 46%;
-      left: 11%;
-      top: 20%;
-      background:
-        repeating-linear-gradient(90deg,
-          rgba(255,255,255,.96) 0 4px,
-          rgba(155,161,168,.65) 4px 7px,
-          rgba(75,82,90,.55) 7px 9px,
-          rgba(235,237,237,.92) 9px 13px);
-      transform: rotate(-4deg);
-      border-radius: 10px;
-      filter: drop-shadow(2px 3px 2px rgba(0,0,0,.25));
+    body.mobile-mode aside.mobile-panel-closed {
+      transform: translateY(105%) !important;
+      pointer-events: none !important;
     }
-    .impasto-preset[data-impasto-brush="3"]::after {
-      width: 82%;
-      height: 7%;
-      left: 9%;
-      top: 56%;
-      background: rgba(255,255,255,.65);
-      border-radius: 50%;
-      transform: rotate(-4deg);
+    body.mobile-mode #mobile-nav-bar {
+      display: flex !important;
     }
-
-    /* 3D Smudges — 부드럽게 밀어낸 입체 리본 */
-    .impasto-preset[data-impasto-brush="4"]::before {
-      width: 84%;
-      height: 24%;
-      left: 8%;
-      top: 31%;
-      border-radius: 55% 45% 50% 50%;
-      background:
-        linear-gradient(180deg,
-          rgba(255,255,255,.96) 0%,
-          rgba(218,221,223,.98) 28%,
-          rgba(112,118,125,.58) 52%,
-          rgba(244,245,244,.96) 70%,
-          rgba(75,81,88,.28) 100%);
-      transform: rotate(3deg) skewX(-8deg);
-      filter: blur(.15px) drop-shadow(2px 3px 2px rgba(0,0,0,.24));
-    }
-    .impasto-preset[data-impasto-brush="4"]::after {
-      width: 72%;
-      height: 5%;
-      left: 14%;
-      top: 39%;
-      border-radius: 50%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.92) 22%, rgba(255,255,255,.35) 70%, transparent);
-      transform: rotate(3deg);
+    #mobile-nav-bar {
+      display: none;
     }
 
 </style>
@@ -412,15 +444,15 @@
 
       </div>
 
-      <!-- Impasto Brush Presets (임파스토 기법 선택 시에만 표시) -->
+      <!-- Impasto Brush Presets (임파스토 기법 클릭시에만 펼쳐지도록 hidden 처리) -->
       <div id="impasto-brush-settings" class="impasto-brush-panel hidden">
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold uppercase tracking-wider mb-0 flex items-center gap-1.5">
-            <i class="fa-solid fa-layer-group text-indigo-400"></i> 임파스토 브러시
+          <h2 class="text-xs font-bold uppercase tracking-wider mb-0 flex items-center gap-1.5 text-indigo-300">
+            <i class="fa-solid fa-layer-group text-indigo-400"></i> 나이프 & 입체 프리셋
           </h2>
-          <span class="text-[10px] text-slate-400 font-bold">4종</span>
+          <span class="text-[10px] text-slate-400 font-bold">10종</span>
         </div>
-        <p class="text-[10px] text-slate-400 mb-2">참고 브러시처럼 물감의 덩어리·결·밀림 표현을 선택하세요.</p>
+        <p class="text-[10px] text-slate-400 mb-2">Dabbers, Thick Paints, Rakes, 3D Smudges 중 선택하세요.</p>
         <div class="impasto-brush-grid" id="impasto-brush-grid"></div>
       </div>
 
@@ -607,6 +639,19 @@
 
   </main>
 
+  <!-- Mobile Panel Toggle Floating Bar (Visible only in mobile-mode) -->
+  <div id="mobile-nav-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white backdrop-blur-md px-3 py-2 rounded-full border border-slate-700 shadow-2xl items-center gap-2 text-xs font-bold transition-all">
+    <button id="mobile-btn-tools" type="button" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-full flex items-center gap-1.5 transition">
+      <i class="fa-solid fa-paintbrush"></i> 도구/색상
+    </button>
+    <button id="mobile-btn-canvas" type="button" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1.5 transition">
+      <i class="fa-solid fa-expand"></i> 캔버스만
+    </button>
+    <button id="mobile-btn-ref" type="button" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1.5 transition">
+      <i class="fa-solid fa-image"></i> 참고 그림
+    </button>
+  </div>
+
   <!-- Login Modal -->
   <div id="login-modal" class="fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
@@ -626,6 +671,13 @@
         <div>
           <label class="block text-xs font-bold text-gray-700 mb-1">이름 (예: 홍길동)</label>
           <input type="text" id="student-name" required placeholder="이름을 입력하세요" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">기기 모드 선택 (Device Mode)</label>
+          <select id="device-mode-select" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-indigo-900 bg-indigo-50/50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="desktop">PC / 태블릿 모드 (기본)</option>
+            <option value="mobile">스마트폰 모바일 모드</option>
+          </select>
         </div>
         <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition">
           스튜디오 입장하기
@@ -660,6 +712,7 @@
     const state = {
       studentId: '',
       studentName: '',
+      deviceMode: 'desktop',
       tool: 'basic', // basic, scratch, impasto, smudge
       primaryColor: '#2563eb',
       brushSize: 20,
@@ -686,8 +739,8 @@
       strokeStack: [], // Each element: { canvas, ctx }
 
       // Pen Pressure Simulation State
-      pressure: 0.6,           // current effective pressure (0.12 ~ 1.0)
-      impastoBrush: 1,
+      pressure: 0.6,
+      impastoBrush: 'dabber_round', // Default
       impastoAngle: 0,
       impastoPhase: 0,
       impastoSeed: 0,
@@ -702,7 +755,7 @@
       canvasOrientation: 'portrait'
     };
 
-    // Canvas paper size presets: ratio = short side / long side (real paper proportions)
+    // Canvas paper size presets
     const CANVAS_SIZE_PRESETS = {
       a5:     { label: 'A5',            ratio: 148 / 210 },
       a4:     { label: 'A4',            ratio: 210 / 297 },
@@ -711,10 +764,9 @@
       '4:3':  { label: '4:3',           ratio: 3 / 4 },
       '16:9': { label: '16:9',          ratio: 9 / 16 }
     };
-    const CANVAS_LONG_EDGE = 860; // px, longer side of the canvas at any orientation
+    const CANVAS_LONG_EDGE = 860;
 
     // MOPV 오일파스텔 72색 번호 팔레트
-    // 번호(num) / 색상명(name) / 실측 색상값(hex) - 제공된 컬러차트 이미지에서 색상을 추출하여 매핑
     const MOPV_COLORS = [
       { num: 201, name: 'Lemon Yellow', hex: '#f9f052' },
       { num: 202, name: 'Yellow', hex: '#fee207' },
@@ -790,6 +842,33 @@
       { num: 272, name: 'Dark Cool Grey', hex: '#122e46' }
     ];
 
+    // =========================================================================
+    // EXACT 4 CATEGORIES FROM THE USER'S IMAGE:
+    // 1. Dabbers (3D 입체 물감점)
+    // 2. Thick Paints (3D 입체 나이프/유화 터치)
+    // 3. Rakes (3D 갈퀴/빗질 결)
+    // 4. 3D Smudges (3D 입체 문지르기)
+    // =========================================================================
+    const IMPASTO_PRESETS = [
+      // 1. Dabbers
+      { id: 'dabber_round', category: 'Dabbers', name: 'Round Dabber', icon: 'fa-circle', type: 'dabber', widthMult: 1.0, desc: '볼록한 둥근 3D 물감점 스탬프' },
+      { id: 'dabber_textured', category: 'Dabbers', name: 'Textured Dabber', icon: 'fa-certificate', type: 'dabber_textured', widthMult: 1.1, desc: '거친 입체 질감의 물감점 스탬프' },
+      
+      // 2. Thick Paints
+      { id: 'thick_fat_spread', category: 'Thick Paints', name: 'Fat Spread Knife', icon: 'fa-vector-square', type: 'flat', widthMult: 1.8, desc: '넓고 두껍게 펴 발라지는 나이프' },
+      { id: 'thick_flat_smooth', category: 'Thick Paints', name: 'Flat Smooth', icon: 'fa-square', type: 'flat', widthMult: 1.1, desc: '표준 유화 팔레트 평나이프' },
+      { id: 'thick_square', category: 'Thick Paints', name: 'Square Smooth', icon: 'fa-cubes', type: 'square', widthMult: 0.85, desc: '각진 사각형 단면 터치' },
+      { id: 'thick_filbert', category: 'Thick Paints', name: 'Filbert Smooth', icon: 'fa-paintbrush', type: 'filbert', widthMult: 1.0, desc: '부드러운 타원형 오일 터치' },
+      { id: 'thick_liner', category: 'Thick Paints', name: 'Liner Smooth', icon: 'fa-pen-fancy', type: 'liner', widthMult: 0.35, desc: '가늘고 뚜렷한 입체 묘사선' },
+      
+      // 3. Rakes
+      { id: 'rake_plaster', category: 'Rakes', name: 'Plaster Rake (4줄)', icon: 'fa-bars', type: 'rake', lines: 4, widthMult: 1.1, desc: '4줄 갈퀴 빗질 홈 질감' },
+      { id: 'rake_fine', category: 'Rakes', name: 'Fine Rake (7줄)', icon: 'fa-grip-lines', type: 'rake', lines: 7, widthMult: 1.25, desc: '7줄 촘촘한 미세 갈퀴 결' },
+      
+      // 4. 3D Smudges
+      { id: 'smudge_3d_pull', category: '3D Smudges', name: '3D Pull Smudge', icon: 'fa-hand-pointer', type: '3d_smudge', widthMult: 1.0, desc: '물감 덩어리를 3D 형태로 늘림' }
+    ];
+
     // --- DOM Elements ---
     const loginModal = document.getElementById('login-modal');
     const loginForm = document.getElementById('login-form');
@@ -827,7 +906,6 @@
     const pressureMeterFill = document.getElementById('pressure-meter-fill');
     const pressureMeterVal = document.getElementById('pressure-meter-val');
 
-
     const refImageContainer = document.getElementById('ref-image-container');
     const refImageInput = document.getElementById('ref-image-input');
     const refImage = document.getElementById('ref-image');
@@ -862,13 +940,16 @@
       state.studentId = id;
       state.studentName = name;
       userBadgeText.innerText = `${id} ${name}`;
+      const mode = document.getElementById('device-mode-select').value;
+      state.deviceMode = mode;
+      if (mode === 'mobile') {
+        enableMobileMode();
+      }
       loginModal.classList.add('hidden');
       showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
     };
 
     // --- MOPV Numbered Oil Pastel Palette Logic ---
-
-    // Perceived brightness -> decide light/dark label text color for contrast
     function getContrastTextColor(hex) {
       const { r, g, b } = hexToRgb(hex);
       const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -934,7 +1015,6 @@
     });
 
     // --- Canvas Paper Size & Orientation ---
-
     function computeCanvasDimensions(presetKey, orientation) {
       const preset = CANVAS_SIZE_PRESETS[presetKey] || CANVAS_SIZE_PRESETS.a5;
       let w, h;
@@ -967,7 +1047,6 @@
       canvasWrapper.style.width = `${w}px`;
       canvasWrapper.style.height = `${h}px`;
 
-      // Existing stroke layers were rendered at the old resolution, so start fresh.
       state.strokeStack = [];
       state.history = [];
       state.historyIndex = -1;
@@ -1079,10 +1158,6 @@
     }
 
     // --- Pen/Touch Pressure Simulation ---
-    // Real pressure (pen/stylus with a force sensor) is used when available.
-    // For mouse or non-pressure touch input, pressure is simulated from drawing
-    // speed: slower strokes press harder (darker/denser), faster strokes are
-    // lighter (fainter/patchier) - mirrors how a real oil pastel behaves.
     function computePressure(e, x, y) {
       const now = performance.now();
       let speedFactor = 0.6;
@@ -1136,7 +1211,7 @@
       if (e.button === 0 || e.pointerType !== 'mouse') {
         canvasWrapper.setPointerCapture(e.pointerId);
         const { x, y } = getCanvasCoords(e);
-        state.lastMoveTime = 0; // reset speed tracking for a fresh stroke
+        state.lastMoveTime = 0;
         const pressure = computePressure(e, x, y);
         startDrawing(x, y, pressure);
       }
@@ -1172,7 +1247,6 @@
     canvasWrapper.addEventListener('pointerup', endPointerInteraction);
     canvasWrapper.addEventListener('pointercancel', endPointerInteraction);
 
-    // Prevent default touch scrolling/gestures on the drawing surface
     canvasWrapper.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
     canvasWrapper.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
@@ -1186,11 +1260,9 @@
 
     function renderCompositeCanvas() {
       mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-      // Base paper white
       mainCtx.fillStyle = '#ffffff';
       mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-      // Composite stroke layers from bottom to top
       state.strokeStack.forEach(layer => {
         mainCtx.drawImage(layer.canvas, 0, 0);
       });
@@ -1252,8 +1324,6 @@
         currentActiveLayer = createNewStrokeLayer();
         state.strokeStack.push(currentActiveLayer);
         if (state.tool === 'impasto') {
-          // 스트로크마다 고유한 흔들림 시드를 부여해, 한 붓질 안에서는
-          // 매끄럽게 이어지고 붓질끼리는 서로 달라 보이게 한다.
           state.impastoSeed = Math.random() * 1000;
           state.impastoPhase = 0;
           state.impastoLastDrawX = x;
@@ -1273,16 +1343,9 @@
       } else if (state.tool === 'smudge') {
         applySmudge(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
       } else if (state.tool === 'impasto') {
-        // 아주 잘게 쪼개진 포인터 이동마다 나이프 조각을 새로 그리면
-        // 얇은 자국이 겹겹이 쌓여 지저분해 보이므로, 일정 거리 이상
-        // 움직였을 때만 하나의 임파스토 자국으로 이어 그린다.
-        const segDist = Math.hypot(x - state.impastoLastDrawX, y - state.impastoLastDrawY);
-        const minSeg = Math.max(5, state.brushSize * 0.32);
-        if (segDist >= minSeg) {
-          drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, x, y, currentActiveLayer.ctx, p);
-          state.impastoLastDrawX = x;
-          state.impastoLastDrawY = y;
-        }
+        drawImpastoKnifeStroke(state.impastoLastDrawX, state.impastoLastDrawY, x, y, currentActiveLayer.ctx, p);
+        state.impastoLastDrawX = x;
+        state.impastoLastDrawY = y;
       } else {
         drawStroke(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
       }
@@ -1294,14 +1357,6 @@
 
     function stopDrawing() {
       if (state.isDrawing) {
-        // 마지막에 남은 짧은 이동분도 끊기지 않도록 마무리 조각을 그린다.
-        if (state.tool === 'impasto' && currentActiveLayer) {
-          const tailDist = Math.hypot(state.lastX - state.impastoLastDrawX, state.lastY - state.impastoLastDrawY);
-          if (tailDist > 0.6) {
-            drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, state.lastX, state.lastY, currentActiveLayer.ctx, state.pressure);
-            renderCompositeCanvas();
-          }
-        }
         state.isDrawing = false;
         currentActiveLayer = null;
         scratchTargetIndex = -1;
@@ -1330,8 +1385,6 @@
         const targetCtx = state.strokeStack[scratchTargetIndex].ctx;
         targetCtx.save();
         targetCtx.globalCompositeOperation = 'destination-out';
-        // Light scratching only partially peels the layer (needs repeated passes);
-        // pressing hard peels it away in one pass, like a real fingernail/tool scratch.
         targetCtx.globalAlpha = 0.3 + 0.7 * p;
         targetCtx.beginPath();
         targetCtx.arc(x, y, (state.brushSize / 2) * (0.85 + 0.25 * p), 0, Math.PI * 2);
@@ -1357,13 +1410,10 @@
           );
         }
       } else if (state.tool === 'impasto') {
-        drawImpastoStroke(x1, y1, x2, y2, ctx, p);
+        drawImpastoKnifeStroke(x1, y1, x2, y2, ctx, p);
       }
     }
 
-    // Pressure (0.12 ~ 1.0) controls how faint/patchy (light press) versus
-    // dark/dense (hard press) each oil pastel stamp looks - fewer & fainter
-    // grain particles under light pressure, more & darker under heavy pressure.
     function drawPastelStamp(x, y, color, ctx, pressure) {
       const p = typeof pressure === 'number' ? pressure : state.pressure;
       ctx.save();
@@ -1402,317 +1452,168 @@
       return rgbToHex(r * factor, g * factor, b * factor);
     }
 
-    // ------------------------------------------------------------------
-    // Impasto rendering
-    // Reference brush language:
-    // 1) Dabbers     : 둥글고 불규칙한 물감 덩어리
-    // 2) Thick Paints: 길고 두꺼운 물감 띠 + 붓결
-    // 3) Rakes       : 여러 개의 평행한 긁힘/갈퀴 결
-    // 4) 3D Smudges  : 부드럽게 밀어낸 입체 리본
-    //
-    // 기존 나이프/각진 조각 방식은 임파스토에서만 교체하고,
-    // 기본/스크래치/스머지 및 나머지 앱 동작은 그대로 유지한다.
-    // ------------------------------------------------------------------
-
-    const IMPASTO_PRESETS = {
-      1: { key: 'dabber',   name: 'Dabbers' },
-      2: { key: 'thick',    name: 'Thick Paints' },
-      3: { key: 'rake',     name: 'Rakes' },
-      4: { key: 'smudge3d', name: '3D Smudges' }
-    };
-
-    function point(x, y) { return { x, y }; }
-
-    function impastoWobble(offset = 0) {
-      return Math.sin(
-        (state.impastoSeed || 0) * 0.017 +
-        (state.impastoPhase || 0) * 0.9 + offset
-      ) * 0.5;
-    }
-
-    // 오일파스텔 임파스토의 핵심:
-    // 매끈한 디지털 그라디언트가 아니라 '왁스/안료 입자 + 짧은 결 + 깨진 가장자리'
-    // 를 여러 층 쌓아 실제 오일파스텔을 두껍게 문지른 것처럼 만든다.
-    function pastelNoise(n) {
-      const s = (state.impastoSeed || 0) * 12.9898 + n * 78.233 + (state.impastoPhase || 0) * 37.719;
-      return (Math.sin(s) * 43758.5453) % 1;
-    }
-
-    function pastelJitter(n, amount) {
-      return (pastelNoise(n) - 0.5) * amount;
-    }
-
-    function pastelStroke(ctx, x1, y1, x2, y2, color, alpha, width) {
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = Math.max(0.7, width);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function buildIrregularBlob(cx, cy, rx, ry, angle, count = 18, seedOffset = 0) {
-      const pts = [];
-      const c = Math.cos(angle), sn = Math.sin(angle);
-      for (let i = 0; i < count; i++) {
-        const a = (Math.PI * 2 * i) / count;
-        const n = 0.82 + 0.22 * (0.5 + pastelNoise(seedOffset + i * 2.31));
-        const lx = Math.cos(a) * rx * n;
-        const ly = Math.sin(a) * ry * (0.86 + 0.22 * (0.5 + pastelNoise(seedOffset + i * 4.17)));
-        pts.push(point(
-          cx + lx * c - ly * sn,
-          cy + lx * sn + ly * c
-        ));
-      }
-      return pts;
-    }
-
-    function fillPastelShape(ctx, pts, baseColor, alpha) {
-      // 밑색: 완전히 평평하지 않도록 여러 불투명도의 오일파스텔 안료층을 만든다.
-      ctx.save();
-      ctx.globalAlpha = alpha * 0.72;
-      ctx.fillStyle = baseColor;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function texturePastelShape(ctx, pts, baseColor, alpha, density, directionAngle, seedOffset = 0) {
-      // 클리핑된 짧은 파스텔 섬유/안료 입자. 선명한 디지털 외곽선 대신
-      // 가장자리에서 입자가 끊기며 빠져나오도록 일부는 의도적으로 불규칙하게 둔다.
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      pts.forEach(q => {
-        minX = Math.min(minX, q.x); minY = Math.min(minY, q.y);
-        maxX = Math.max(maxX, q.x); maxY = Math.max(maxY, q.y);
-      });
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.clip();
-
-      const { r, g, b } = hexToRgb(baseColor);
-      const dark = rgbToHex(r * 0.60, g * 0.60, b * 0.60);
-      const light = rgbToHex(Math.min(255,r * 1.20), Math.min(255,g * 1.20), Math.min(255,b * 1.20));
-      const count = Math.round(Math.min(190, Math.max(35, density)));
-      const c = Math.cos(directionAngle), sn = Math.sin(directionAngle);
-
-      for (let i = 0; i < count; i++) {
-        const x = minX + (maxX - minX) * (0.5 + (pastelNoise(seedOffset + i * 3.17) - 0.5) * 1.02);
-        const y = minY + (maxY - minY) * (0.5 + (pastelNoise(seedOffset + i * 5.73) - 0.5) * 1.02);
-        const len = 1.5 + (0.5 + pastelNoise(seedOffset + i * 7.19)) * 6.0;
-        const width = 0.65 + (0.5 + pastelNoise(seedOffset + i * 9.11)) * 1.7;
-        const jitter = pastelJitter(seedOffset + i * 11.3, Math.PI * 0.42);
-        const a = alpha * (0.07 + (0.5 + pastelNoise(seedOffset + i * 13.7)) * 0.16);
-        const col = i % 7 === 0 ? light : (i % 9 === 0 ? dark : baseColor);
-        const ang = directionAngle + jitter;
-
-        pastelStroke(
-          ctx,
-          x - Math.cos(ang) * len * 0.5,
-          y - Math.sin(ang) * len * 0.5,
-          x + Math.cos(ang) * len * 0.5,
-          y + Math.sin(ang) * len * 0.5,
-          col,
-          a,
-          width
-        );
-      }
-      ctx.restore();
-    }
-
-    function roughPastelEdge(ctx, pts, baseColor, alpha, seedOffset = 0) {
-      // 임파스토의 두꺼운 가장자리. 완벽한 외곽선이 아니라 끊어진 안료 덩어리로 표현.
-      for (let i = 0; i < pts.length; i++) {
-        const a = pts[i], b = pts[(i + 1) % pts.length];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const len = Math.hypot(dx, dy);
-        const steps = Math.max(1, Math.floor(len / 9));
-        for (let j = 0; j < steps; j++) {
-          if (pastelNoise(seedOffset + i * 17 + j * 2.1) < 0.22) continue;
-          const t = (j + 0.15 + pastelNoise(seedOffset + i * 19 + j)) / steps;
-          const x = a.x + dx * t;
-          const y = a.y + dy * t;
-          const nx = -dy / Math.max(1, len), ny = dx / Math.max(1, len);
-          const col = pastelNoise(seedOffset + i * 23 + j) > 0.55
-            ? adjustColorBrightness(baseColor, 0.55)
-            : adjustColorBrightness(baseColor, 1.15);
-          pastelStroke(ctx,
-            x + nx * pastelJitter(seedOffset + j, 2.5),
-            y + ny * pastelJitter(seedOffset + j + 1, 2.5),
-            x + nx * pastelJitter(seedOffset + j + 2, 2.5) + dx / Math.max(1,len) * 3,
-            y + ny * pastelJitter(seedOffset + j + 3, 2.5) + dy / Math.max(1,len) * 3,
-            col, alpha * 0.22, 1 + pastelNoise(j) * 1.5);
-        }
-      }
-    }
-
-    function drawDabberStamp(x, y, ctx, p) {
-      const size = state.brushSize * (0.78 + p * 0.52);
-      const angle = state.impastoAngle || 0;
-      const rx = size * (0.58 + p * 0.12);
-      const ry = size * (0.40 + p * 0.10);
-      const pts = buildIrregularBlob(x, y, rx, ry, angle, 20, 100);
-
-      // 두껍게 눌린 오일파스텔: 어두운 밑층 → 본체 → 밝게 닳은 표면.
-      const under = pts.map(q => ({x:q.x + size*.055, y:q.y + size*.08}));
-      fillPastelShape(ctx, under, adjustColorBrightness(state.primaryColor, .48), state.opacity * .48);
-      fillPastelShape(ctx, pts, state.primaryColor, state.opacity * (.80 + .16*p));
-      texturePastelShape(ctx, pts, state.primaryColor, state.opacity, 78, angle, 200);
-      roughPastelEdge(ctx, pts, state.primaryColor, state.opacity, 240);
-
-      // 한쪽에만 부드러운 파스텔 하이라이트를 조금 남긴다.
-      const hi = buildIrregularBlob(x - rx*.12, y - ry*.18, rx*.48, ry*.17, angle, 12, 280);
-      texturePastelShape(ctx, hi, adjustColorBrightness(state.primaryColor, 1.18), state.opacity * .55, 28, angle, 300);
-    }
-
-    function drawThickPaintStroke(x1, y1, x2, y2, ctx, p) {
-      const dx = x2-x1, dy = y2-y1, dist = Math.hypot(dx,dy);
-      if (dist < .75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux = dx/dist, uy = dy/dist;
-      const nx = -uy, ny = ux;
-      const half = state.brushSize * (0.34 + 0.17*p);
-      const ex = Math.min(half*.65, dist*.28);
-      const a = {x:x1-ux*ex, y:y1-uy*ex}, b = {x:x2+ux*ex, y:y2+uy*ex};
-      const angle = Math.atan2(dy,dx);
-
-      // 길게 밀린 오일파스텔 덩어리. 끝은 둥글지만 표면은 파스텔 섬유질이다.
-      const pts = buildIrregularBlob((a.x+b.x)/2,(a.y+b.y)/2,Math.max(half,dist*.52),half,angle,28,400);
-      // 위 blob은 너무 타원형이므로 실제 스트로크 방향으로 늘린 캡슐을 만든다.
-      const cap = [];
-      const segs = 18;
-      for(let i=0;i<segs;i++){
-        const t=i/(segs-1), px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
-        const edge=Math.sin(Math.PI*t);
-        cap.push(point(px+nx*half*(0.72+0.28*edge),py+ny*half*(0.72+0.28*edge)));
-      }
-      for(let i=segs-1;i>=0;i--){
-        const t=i/(segs-1), px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
-        const edge=Math.sin(Math.PI*t);
-        cap.push(point(px-nx*half*(0.72+0.28*edge),py-ny*half*(0.72+0.28*edge)));
-      }
-
-      fillPastelShape(ctx, cap, adjustColorBrightness(state.primaryColor,.52), state.opacity*.40);
-      fillPastelShape(ctx, cap, state.primaryColor, state.opacity*(.76+.20*p));
-      texturePastelShape(ctx, cap, state.primaryColor, state.opacity, 125, angle, 500);
-      roughPastelEdge(ctx, cap, state.primaryColor, state.opacity, 560);
-
-      // 두꺼운 물감이 눌리며 남기는 밝은 파스텔 섬유 띠.
-      for(let i=0;i<5;i++){
-        const off=(i-2)*half*.17;
-        pastelStroke(ctx,
-          a.x+nx*off-ux*2, a.y+ny*off-uy*2,
-          b.x+nx*off+ux*2, b.y+ny*off+uy*2,
-          i%2 ? adjustColorBrightness(state.primaryColor,1.12) : adjustColorBrightness(state.primaryColor,.76),
-          state.opacity*(.08+.035*p), Math.max(1,half*.035));
-      }
-    }
-
-    function drawRakeStroke(x1, y1, x2, y2, ctx, p) {
-      const dx=x2-x1, dy=y2-y1, dist=Math.hypot(dx,dy);
-      if(dist<.75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux=dx/dist, uy=dy/dist, nx=-uy, ny=ux;
-      const half=state.brushSize*(.36+.16*p);
-      const count=Math.max(5,Math.min(11,Math.round(state.brushSize/6)));
-
-      // Rake도 '검은 선을 그은 것'이 아니라 각각이 오일파스텔로 눌린 작은 융기.
-      for(let i=0;i<count;i++){
-        const t=(i/(count-1))-.5;
-        const off=t*half*1.55;
-        const wob=impastoWobble(i*1.3)*half*.10;
-        const sx=x1+nx*(off+wob)-ux*2, sy=y1+ny*(off+wob)-uy*2;
-        const ex=x2+nx*(off-wob)+ux*2, ey=y2+ny*(off-wob)+uy*2;
-        const mini=half*(.075+.025*p);
-        const pts=[];
-        for(let j=0;j<12;j++){
-          const q=j/11, px=sx+(ex-sx)*q, py=sy+(ey-sy)*q;
-          const bulge=Math.sin(Math.PI*q)*mini;
-          pts.push(point(px+nx*bulge,py+ny*bulge));
-        }
-        for(let j=11;j>=0;j--){
-          const q=j/11, px=sx+(ex-sx)*q, py=sy+(ey-sy)*q;
-          const bulge=Math.sin(Math.PI*q)*mini;
-          pts.push(point(px-nx*bulge,py-ny*bulge));
-        }
-        fillPastelShape(ctx,pts,state.primaryColor,state.opacity*(.55+.18*p));
-        texturePastelShape(ctx,pts,state.primaryColor,state.opacity*.95,34,Math.atan2(dy,dx),700+i*31);
-        roughPastelEdge(ctx,pts,state.primaryColor,state.opacity*.8,760+i*31);
-      }
-    }
-
-    function draw3DSmudgeStroke(x1,y1,x2,y2,ctx,p){
-      const dx=x2-x1,dy=y2-y1,dist=Math.hypot(dx,dy);
-      if(dist<.75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux=dx/dist,uy=dy/dist,nx=-uy,ny=ux;
-      const half=state.brushSize*(.27+.17*p);
-      const bend=impastoWobble(3.4)*half*.75;
-      const cx=(x1+x2)/2+nx*bend,cy=(y1+y2)/2+ny*bend;
-
-      const pts=[];
-      const seg=20;
-      for(let i=0;i<=seg;i++){
-        const q=i/seg, px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend;
-        const w=half*(.78+.22*Math.sin(Math.PI*q));
-        pts.push(point(px+nx*w,py+ny*w));
-      }
-      for(let i=seg;i>=0;i--){
-        const q=i/seg, px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend;
-        const w=half*(.78+.22*Math.sin(Math.PI*q));
-        pts.push(point(px-nx*w,py-ny*w));
-      }
-
-      fillPastelShape(ctx,pts,adjustColorBrightness(state.primaryColor,.50),state.opacity*.38);
-      fillPastelShape(ctx,pts,state.primaryColor,state.opacity*(.72+.20*p));
-      texturePastelShape(ctx,pts,state.primaryColor,state.opacity,105,Math.atan2(dy,dx),900);
-      roughPastelEdge(ctx,pts,state.primaryColor,state.opacity*.8,980);
-
-      // 밀린 표면에 남는 넓고 부드러운 하이라이트도 '한 줄'이 아니라 짧은 파스텔 결의 집합.
-      for(let i=0;i<18;i++){
-        const q=(i+.5)/18;
-        const px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend+nx*half*.12;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend+ny*half*.12;
-        const l=2+pastelNoise(1000+i)*6;
-        pastelStroke(ctx,px-ux*l,py-uy*l,px+ux*l,py+uy*l,
-          adjustColorBrightness(state.primaryColor,1.16),
-          state.opacity*(.06+.05*p),Math.max(1,half*.07));
-      }
-    }
-
-    function drawImpastoStroke(x1, y1, x2, y2, ctx, pressure) {
+    // --- REFINED IMPASTO ENGINE SUPPORTING 4 CATEGORIES ---
+    function drawImpastoKnifeStroke(x1, y1, x2, y2, ctx, pressure) {
       const p = typeof pressure === 'number' ? pressure : state.pressure;
-      const preset = IMPASTO_PRESETS[state.impastoBrush] || IMPASTO_PRESETS[1];
-      state.impastoAngle = Math.atan2(y2-y1, x2-x1);
+      const preset = IMPASTO_PRESETS.find(pr => pr.id === state.impastoBrush) || IMPASTO_PRESETS[0];
+      const base = state.primaryColor;
+      const light = adjustColorBrightness(base, 1.45);
+      const shadow = adjustColorBrightness(base, 0.48);
 
-      if (preset.key === 'dabber') {
-        const dist=Math.hypot(x2-x1,y2-y1);
-        if(dist<.75) drawDabberStamp(x1,y1,ctx,p);
-        else {
-          const step=Math.max(4,state.brushSize*.28);
-          for(let d=0;d<=dist;d+=step){
-            const t=Math.min(1,d/dist);
-            drawDabberStamp(x1+(x2-x1)*t,y1+(y2-y1)*t,ctx,p);
+      const dx = x2 - x1, dy = y2 - y1;
+      const dist = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx);
+
+      ctx.save();
+
+      // --- 1. DABBERS (3D 입체 물감점) ---
+      if (preset.type === 'dabber' || preset.type === 'dabber_textured') {
+        const r = (state.brushSize / 2) * (preset.widthMult || 1.0) * (0.8 + p * 0.4);
+        ctx.translate(x2, y2);
+
+        ctx.shadowColor = 'rgba(15,10,5,0.35)';
+        ctx.shadowBlur = Math.max(3, r * 0.35);
+        ctx.shadowOffsetY = r * 0.25;
+
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fillStyle = base;
+        ctx.globalAlpha = state.opacity;
+        ctx.fill();
+
+        ctx.shadowColor = 'transparent';
+
+        if (preset.type === 'dabber_textured') {
+          ctx.fillStyle = shadow;
+          ctx.globalAlpha = 0.25;
+          for (let i = 0; i < r * 2.5; i++) {
+            ctx.beginPath();
+            ctx.arc((Math.random() - 0.5) * r * 1.5, (Math.random() - 0.5) * r * 1.5, Math.random() * r * 0.2, 0, Math.PI * 2);
+            ctx.fill();
           }
         }
-      } else if (preset.key === 'thick') {
-        drawThickPaintStroke(x1,y1,x2,y2,ctx,p);
-      } else if (preset.key === 'rake') {
-        drawRakeStroke(x1,y1,x2,y2,ctx,p);
+
+        // 3D Shadow Ridge (Bottom Arc)
+        ctx.beginPath();
+        ctx.arc(0, r * 0.15, r * 0.85, 0.1 * Math.PI, 0.9 * Math.PI);
+        ctx.strokeStyle = shadow;
+        ctx.lineWidth = r * 0.28;
+        ctx.globalAlpha = state.opacity * 0.45;
+        ctx.stroke();
+
+        // 3D Highlight Ring (Top Arc)
+        ctx.beginPath();
+        ctx.arc(0, -r * 0.2, r * 0.68, 1.1 * Math.PI, 1.9 * Math.PI);
+        ctx.strokeStyle = light;
+        ctx.lineWidth = r * 0.25;
+        ctx.globalAlpha = state.opacity * 0.65;
+        ctx.stroke();
+
+      // --- 2. RAKES (3D 갈퀴/빗질 결) ---
+      } else if (preset.type === 'rake') {
+        const lines = preset.lines || 4;
+        const totalWidth = state.brushSize * (preset.widthMult || 1.0) * (0.8 + p * 0.4);
+        const spacing = totalWidth / lines;
+
+        const nx = -Math.sin(angle);
+        const ny = Math.cos(angle);
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        for (let i = 0; i < lines; i++) {
+          const offset = (i - (lines - 1) / 2) * spacing;
+          const lx1 = x1 + nx * offset, ly1 = y1 + ny * offset;
+          const lx2 = x2 + nx * offset, ly2 = y2 + ny * offset;
+
+          // Shadow groove
+          ctx.beginPath();
+          ctx.moveTo(lx1 + nx * 0.8, ly1 + ny * 0.8);
+          ctx.lineTo(lx2 + nx * 0.8, ly2 + ny * 0.8);
+          ctx.strokeStyle = shadow;
+          ctx.lineWidth = Math.max(1.5, spacing * 0.4);
+          ctx.globalAlpha = 0.35 * state.opacity;
+          ctx.stroke();
+
+          // Main strand
+          ctx.beginPath();
+          ctx.moveTo(lx1, ly1);
+          ctx.lineTo(lx2, ly2);
+          ctx.strokeStyle = base;
+          ctx.lineWidth = Math.max(2, spacing * 0.55);
+          ctx.globalAlpha = state.opacity;
+          ctx.stroke();
+
+          // Highlight ridge
+          ctx.beginPath();
+          ctx.moveTo(lx1 - nx * 0.6, ly1 - ny * 0.6);
+          ctx.lineTo(lx2 - nx * 0.6, ly2 - ny * 0.6);
+          ctx.strokeStyle = light;
+          ctx.lineWidth = Math.max(1, spacing * 0.25);
+          ctx.globalAlpha = 0.55 * state.opacity;
+          ctx.stroke();
+        }
+
+      // --- 3. 3D SMUDGE (3D 입체 늘리기) ---
+      } else if (preset.type === '3d_smudge') {
+        const radius = state.brushSize / 2;
+        ctx.globalAlpha = 0.45 * state.opacity;
+        ctx.beginPath();
+        ctx.arc(x2, y2, radius, 0, Math.PI * 2);
+        ctx.fillStyle = base;
+        ctx.fill();
+
+      // --- 4. THICK PAINTS (3D 입체 나이프/유화 터치) ---
       } else {
-        draw3DSmudgeStroke(x1,y1,x2,y2,ctx,p);
+        const width = state.brushSize * (preset.widthMult || 1.0) * (0.75 + p * 0.45);
+        const nx = -Math.sin(angle) * (width / 2);
+        const ny = Math.cos(angle) * (width / 2);
+
+        ctx.lineCap = preset.type === 'square' ? 'square' : 'round';
+        ctx.lineJoin = 'round';
+
+        // Drop Shadow
+        ctx.beginPath();
+        ctx.moveTo(x1 + nx * 0.25, y1 + ny * 0.25);
+        ctx.lineTo(x2 + nx * 0.25, y2 + ny * 0.25);
+        ctx.strokeStyle = shadow;
+        ctx.lineWidth = width * 1.05;
+        ctx.globalAlpha = 0.25 * state.opacity;
+        ctx.stroke();
+
+        // Main Connected Paint Body
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = base;
+        ctx.lineWidth = width;
+        ctx.globalAlpha = state.opacity;
+        ctx.stroke();
+
+        // Top Beveled Edge Highlight
+        ctx.beginPath();
+        ctx.moveTo(x1 - nx * 0.4, y1 - ny * 0.4);
+        ctx.lineTo(x2 - nx * 0.4, y2 - ny * 0.4);
+        ctx.strokeStyle = light;
+        ctx.lineWidth = width * 0.28;
+        ctx.globalAlpha = 0.5 * state.opacity;
+        ctx.stroke();
+
+        // Internal Streaks
+        if (preset.type === 'streaky' || preset.type === 'filbert') {
+          for (let i = -1; i <= 1; i += 2) {
+            ctx.beginPath();
+            ctx.moveTo(x1 + nx * 0.25 * i, y1 + ny * 0.25 * i);
+            ctx.lineTo(x2 + nx * 0.25 * i, y2 + ny * 0.25 * i);
+            ctx.strokeStyle = i === 1 ? shadow : light;
+            ctx.lineWidth = width * 0.12;
+            ctx.globalAlpha = 0.3 * state.opacity;
+            ctx.stroke();
+          }
+        }
       }
-      state.impastoPhase=(state.impastoPhase||0)+.42;
+
+      ctx.restore();
     }
 
     function applySmudge(x1, y1, x2, y2, ctx, pressure) {
@@ -1730,7 +1631,6 @@
       );
 
       ctx.save();
-      // Harder pressure blends/spreads pigment more; a light touch barely smudges it.
       ctx.globalAlpha = 0.18 + 0.35 * p;
       ctx.beginPath();
       ctx.arc(x2, y2, radius, 0, Math.PI * 2);
@@ -1739,43 +1639,46 @@
       ctx.restore();
     }
 
-
-    // Build the 4 reference-style impasto brush buttons.
+    // Build the Impasto Preset UI (Categorized into 4 exact sections: Dabbers, Thick Paints, Rakes, 3D Smudges)
     const impastoBrushGrid = document.getElementById('impasto-brush-grid');
     if (impastoBrushGrid) {
-      Object.entries(IMPASTO_PRESETS).forEach(([id, preset]) => {
+      impastoBrushGrid.innerHTML = '';
+      IMPASTO_PRESETS.forEach(preset => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'impasto-preset' + (Number(id) === state.impastoBrush ? ' active' : '');
-        button.dataset.impastoBrush = id;
+        button.className = `impasto-preset ${preset.id === state.impastoBrush ? 'active' : ''}`;
+        button.dataset.impastoBrush = preset.id;
         button.setAttribute('aria-label', preset.name);
-        button.title = preset.name;
+        button.title = preset.desc;
 
-        const label = document.createElement('span');
-        label.className = 'impasto-label';
-        label.innerText = preset.name;
-        button.appendChild(label);
+        button.innerHTML = `
+          <div class="impasto-preset-icon"><i class="fa-solid ${preset.icon}"></i></div>
+          <div class="text-left overflow-hidden">
+            <div class="text-xs font-bold text-slate-200 truncate">${preset.name}</div>
+            <div class="text-[9px] text-slate-400 truncate">${preset.desc}</div>
+          </div>
+        `;
 
         button.onclick = () => {
-          state.impastoBrush = Number(id);
+          state.impastoBrush = preset.id;
           document.querySelectorAll('.impasto-preset').forEach(b => b.classList.remove('active'));
           button.classList.add('active');
-          showToast(`${preset.name} 브러시 선택`);
+          showToast(`나이프 선택: ${preset.name}`);
         };
-
         impastoBrushGrid.appendChild(button);
       });
     }
 
     const impastoBrushSettings = document.getElementById('impasto-brush-settings');
 
+    // Tool Switch Listener: ONLY show impasto knife presets when 'impasto' tool is clicked!
     document.querySelectorAll('.tool-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.tool = btn.getAttribute('data-tool');
 
-        // 임파스토 브러시 패널은 '임파스토' 기법을 선택했을 때만 펼쳐진다.
+        // Toggle Knife Preset Panel: Only opens when 'impasto' technique is clicked
         if (impastoBrushSettings) {
           impastoBrushSettings.classList.toggle('hidden', state.tool !== 'impasto');
         }
@@ -1783,7 +1686,7 @@
         const TIPS = {
           basic: '기본 오일파스텔: 서걱거리는 특유의 질감 입자로 자유롭게 색을 표현하세요.',
           scratch: '스크래치 툴: 겹쳐칠해진 오일파스텔을 긁어내면 바로 밑의 색상이 차례차례 벗겨져 나옵니다.',
-          impasto: '임파스토: 참고 브러시처럼 물감이 실제로 솟아 있는 덩어리와 표면 결을 표현합니다. Dabbers·Thick Paints·Rakes·3D Smudges 중에서 선택하세요.',
+          impasto: '임파스토(나이프/Thick Paint): 이미지 분석 기반의 4가지 표현 (Dabbers, Thick Paints, Rakes, 3D Smudges)을 선택해 입체감을 연출하세요.',
           smudge: '스머지: 손가락이나 찰필로 문지르듯 색상을 부드럽게 번지고 섞이게 만듭니다.'
         };
         tipText.innerHTML = TIPS[state.tool];
