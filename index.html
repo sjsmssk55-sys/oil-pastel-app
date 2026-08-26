@@ -336,6 +336,7 @@
     #mobile-nav-bar {
       display: none;
     }
+
 </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-gray-800">
@@ -647,7 +648,7 @@
   </main>
 
   <!-- Mobile Panel Toggle Floating Bar (Visible only in mobile-mode) -->
-  <div id="mobile-nav-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white backdrop-blur-md px-3 py-2 rounded-full border border-slate-700 shadow-2xl items-center gap-2 text-xs font-bold transition-all">
+  <div id="mobile-nav-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 text-white backdrop-blur-md px-3 py-2 rounded-full border border-slate-700 shadow-2xl items-center gap-2 text-xs font-bold transition-all">
     <button id="mobile-btn-tools" type="button" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-full flex items-center gap-1.5 transition">
       <i class="fa-solid fa-paintbrush"></i> 도구/색상
     </button>
@@ -928,12 +929,14 @@
       state.studentName = name;
       userBadgeText.innerText = `${id} ${name}`;
 
-      const mode = document.getElementById('device-mode-select').value;
+      const modeSelect = document.getElementById('device-mode-select');
+      const mode = modeSelect ? modeSelect.value : 'desktop';
       state.deviceMode = mode;
       if (mode === 'mobile') {
         enableMobileMode();
       }
 
+      loginModal.style.display = 'none';
       loginModal.classList.add('hidden');
       showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
     };
@@ -1200,7 +1203,7 @@
       if (e.button === 0 || e.pointerType !== 'mouse') {
         canvasWrapper.setPointerCapture(e.pointerId);
         const { x, y } = getCanvasCoords(e);
-        state.lastMoveTime = 0; // reset speed tracking for a fresh stroke
+        state.lastMoveTime = 0;
         const pressure = computePressure(e, x, y);
         startDrawing(x, y, pressure);
       }
@@ -1249,11 +1252,9 @@
 
     function renderCompositeCanvas() {
       mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-      // Base paper white
       mainCtx.fillStyle = '#ffffff';
       mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-      // Composite stroke layers from bottom to top
       state.strokeStack.forEach(layer => {
         mainCtx.drawImage(layer.canvas, 0, 0);
       });
@@ -1352,13 +1353,6 @@
 
     function stopDrawing() {
       if (state.isDrawing) {
-        if (state.tool === 'impasto' && currentActiveLayer) {
-          const tailDist = Math.hypot(state.lastX - state.impastoLastDrawX, state.lastY - state.impastoLastDrawY);
-          if (tailDist > 0.6) {
-            drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, state.lastX, state.lastY, currentActiveLayer.ctx, state.pressure);
-            renderCompositeCanvas();
-          }
-        }
         state.isDrawing = false;
         currentActiveLayer = null;
         scratchTargetIndex = -1;
