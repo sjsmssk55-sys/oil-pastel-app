@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>오일파스텔 아트 스튜디오 (Oil Pastel Art Class)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>오일파스텔 아트 스튜디오 (Mobile)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -11,539 +11,393 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
+    html, body {
+      height: 100dvh;
+      width: 100vw;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
       font-family: 'Nanum Gothic', sans-serif;
       user-select: none;
-      background-color: #f3f4f6;
+      background-color: #0f172a;
+      color: #e2e8f0;
+    }
+    header {
+      background: linear-gradient(90deg, #11182d, #17172d);
+      border-bottom: 1px solid rgba(148,163,184,.18);
     }
     .canvas-container {
       position: relative;
-      background-color: #ffffff;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-      background-size: 16px 16px;
+      background-color: #efece4 !important;
+      background-image:
+        radial-gradient(rgba(91,72,45,.12) .7px, transparent .9px),
+        radial-gradient(rgba(255,255,255,.65) .7px, transparent .9px) !important;
+      background-size: 9px 9px, 15px 15px !important;
+      background-position: 0 0, 4px 6px !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,.5);
     }
     canvas, #canvas-wrapper {
       touch-action: none;
     }
-    /* Custom Paper Grain Texture Overlay */
     .paper-texture {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; opacity: 0.15;
       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.6"/></svg>');
     }
-    .tool-btn.active {
-      background-color: #4f46e5; color: #ffffff;
-      border-color: #4338ca; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    .tool-btn {
+      background: linear-gradient(145deg, #202635, #171c28);
+      border: 1px solid #30394b;
+      color: #dbe4f0;
+      min-height: 52px;
     }
-    .orientation-btn.active {
-      background-color: #eef2ff; color: #4338ca;
+    .tool-btn.active {
+      background: linear-gradient(145deg, #635bdf, #4338ca) !important;
+      border-color: #818cf8 !important;
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(79,70,229,.35);
     }
     .mopv-swatch {
-      position: relative; width: 100%; aspect-ratio: 1 / 1;
-      border-radius: 6px; border: 1px solid rgba(0,0,0,0.12);
-      cursor: pointer; transition: transform 0.1s ease;
-      display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1px;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.12);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 1px;
     }
-    .mopv-swatch:hover { transform: scale(1.12); z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-    .mopv-swatch.selected { outline: 2px solid #4f46e5; outline-offset: 1px; transform: scale(1.1); z-index: 3; }
-    .mopv-swatch span { font-size: 7.5px; font-weight: 800; line-height: 1; text-shadow: 0 0 2px rgba(0,0,0,0.35); pointer-events: none; }
-    
-    #pressure-meter-fill { transition: width 0.05s linear, background-color 0.1s linear; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f1f1; }
-    ::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #818cf8; }
-  
-    /* --- Visual Refresh --- */
-    body {
-      background: radial-gradient(circle at 15% 8%, rgba(63,81,181,.18), transparent 28%), linear-gradient(135deg, #0b1020 0%, #111827 52%, #0a0f1b 100%);
-      color: #e5e7eb;
+    .mopv-swatch.selected {
+      outline: 2px solid #6366f1;
+      outline-offset: 1px;
+      transform: scale(1.08);
+      z-index: 3;
     }
-    header {
-      background: linear-gradient(90deg, #11182d, #17172d) !important;
-      border-bottom-color: rgba(148,163,184,.18) !important;
+    .mopv-swatch span {
+      font-size: 8px;
+      font-weight: 800;
+      line-height: 1;
+      text-shadow: 0 0 2px rgba(0,0,0,0.4);
+      pointer-events: none;
     }
-    aside {
-      background: linear-gradient(180deg, #151a25, #10151f) !important;
-      border-right-color: rgba(148,163,184,.18) !important;
-      color: #e5e7eb !important;
+    /* Mobile Sliding Bottom Sheet */
+    .mobile-drawer {
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      max-height: 55dvh;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 16px;
+      z-index: 40;
+      transform: translateY(120%);
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.5);
     }
-    aside h2, aside label, aside .text-gray-500, aside .text-gray-600, aside .text-gray-700 { color: #cbd5e1 !important; }
-    #tool-settings { background: rgba(30,41,59,.55) !important; border-color: rgba(99,102,241,.25) !important; }
-    .tool-btn { background: linear-gradient(145deg, #202635, #171c28) !important; border-color: #30394b !important; color: #dbe4f0 !important; min-height: 70px; }
-    .tool-btn:hover { background: #252d40 !important; }
-    .tool-btn.active { background: linear-gradient(145deg, #635bdf, #4338ca) !important; border-color: #818cf8 !important; color: white !important; box-shadow: 0 10px 25px rgba(79,70,229,.28); }
-    #tool-settings input[type="range"] { accent-color: #818cf8; }
-    .canvas-container {
-      background-color: #efece4 !important;
-      background-image: radial-gradient(rgba(91,72,45,.12) .7px, transparent .9px), radial-gradient(rgba(255,255,255,.65) .7px, transparent .9px) !important;
-      background-size: 9px 9px, 15px 15px !important; background-position: 0 0, 4px 6px !important;
-      box-shadow: 0 24px 60px rgba(0,0,0,.45) !important;
+    .mobile-drawer.open {
+      transform: translateY(0);
     }
-    main > section { background: radial-gradient(circle at center, #25304a 0%, #121826 72%) !important; }
-    .impasto-brush-panel { background: rgba(15,23,42,.52); border: 1px solid rgba(148,163,184,.16); border-radius: 16px; padding: 12px; }
-    .impasto-brush-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 2px; }
+    .impasto-brush-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+    }
     .impasto-preset {
-      min-height: 80px; border: 1px solid #334155; border-radius: 10px; background: linear-gradient(145deg, #f6f4ef, #d9dde3);
-      position: relative; overflow: hidden; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-      display: flex; align-items: flex-end; justify-content: center; padding: 6px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: #1e293b;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
     }
-    .impasto-preset:hover { transform: translateY(-2px); border-color: #818cf8; }
-    .impasto-preset.active { border: 2px solid #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
-    .impasto-preset .impasto-label {
-      position: relative; z-index: 3; font-size: 9px; font-weight: 800; color: #334155;
-      background: rgba(255,255,255,.85); border-radius: 5px; padding: 2px 5px; box-shadow: 0 1px 3px rgba(0,0,0,.12); pointer-events: none;
+    .impasto-preset.active {
+      border: 2px solid #818cf8;
+      background: #312e81;
     }
+    .impasto-preset-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a5b4fc;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
-    /* --- Mobile Mode CSS --- */
-    html.mobile-mode, body.mobile-mode {
-      height: 100dvh !important; overflow: hidden !important; overscroll-behavior: none !important;
+    /* Tailwind CDN이 늦게 뜨거나 차단돼도 항상 동작하도록 하는 안전망 */
+    .hidden { display: none !important; }
+    button, [role="button"], .tool-btn, .nav-tab-btn, .mopv-swatch,
+    .impasto-preset, .drawer-close-btn, #color-number-apply, label[for], input[type="range"] {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
     }
-    body.mobile-mode main { flex-direction: column !important; position: relative !important; }
-    body.mobile-mode aside {
-      width: 100% !important; max-height: 50dvh !important; position: fixed !important;
-      bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 45 !important;
-      box-shadow: 0 -10px 30px rgba(0,0,0,0.6) !important; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      border-top: 2px solid rgba(129,140,248,0.3) !important; border-radius: 20px 20px 0 0 !important;
-    }
-    body.mobile-mode aside.mobile-panel-closed { transform: translateY(105%) !important; pointer-events: none !important; }
-    body.mobile-mode #mobile-nav-bar { display: flex !important; }
-    #mobile-nav-bar { display: none; }
+    /* 버튼/드로어는 항상 캔버스보다 위에서 터치를 받도록 z-index만 명시 (position은 기존 값 유지) */
+    header { position: relative; z-index: 30; }
+    nav { position: relative; z-index: 45; }
+    .mobile-drawer { z-index: 40; }
+    #login-modal { z-index: 60; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-gray-800">
+<body class="flex flex-col h-full w-full select-none overflow-hidden">
 
-  <!-- Header Bar -->
-  <header class="bg-indigo-900 text-white px-3 py-2 sm:px-6 sm:py-3 flex items-center justify-between shadow-md z-10 shrink-0 gap-2 overflow-hidden">
-    <div class="flex items-center space-x-2 shrink-0 min-w-0">
-      <div class="p-1.5 sm:p-2 bg-indigo-700 rounded-lg shadow-inner shrink-0">
-        <i class="fa-solid fa-palette text-base sm:text-xl text-amber-300"></i>
+  <!-- Mobile Top Header Bar -->
+  <header class="px-4 py-2.5 flex items-center justify-between shrink-0 z-20">
+    <div class="flex items-center space-x-2">
+      <div class="p-1.5 bg-indigo-700 rounded-lg">
+        <i class="fa-solid fa-palette text-amber-300 text-sm"></i>
       </div>
-      <div class="min-w-0">
-        <h1 class="text-sm sm:text-lg font-bold leading-tight whitespace-nowrap overflow-hidden text-ellipsis">오일파스텔 스튜디오</h1>
-        <p class="text-[10px] sm:text-xs text-indigo-300 mt-0.5 whitespace-nowrap hidden sm:block">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
+      <div>
+        <h1 class="text-sm font-bold leading-none text-white">오일파스텔 모바일</h1>
+        <p id="user-badge-text" class="text-[10px] text-indigo-300 mt-0.5">로그인 필요</p>
       </div>
     </div>
 
-    <!-- Actions & User Badge -->
-    <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
-      <div class="flex items-center bg-indigo-800/80 p-0.5 sm:p-1 rounded-lg border border-indigo-700 space-x-0.5">
-        <button id="undo-btn" class="px-2 py-1 sm:px-3 sm:py-1.5 hover:bg-indigo-700 rounded text-[11px] sm:text-xs flex items-center gap-1 transition whitespace-nowrap" title="실행 취소">
-          <i class="fa-solid fa-rotate-left"></i> <span class="hidden md:inline">실행취소</span>
-        </button>
-        <button id="clear-btn" class="px-2 py-1 sm:px-3 sm:py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-[11px] sm:text-xs flex items-center gap-1 transition whitespace-nowrap" title="전체 지우기">
-          <i class="fa-solid fa-trash-can"></i> <span class="hidden md:inline">전체 지우기</span>
-        </button>
-      </div>
-
-      <button id="download-btn" class="px-2 py-1 sm:px-3 sm:py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-[11px] sm:text-xs flex items-center gap-1 shadow transition whitespace-nowrap shrink-0">
-        <i class="fa-solid fa-download"></i> <span class="hidden xs:inline">저장</span>
+    <!-- Quick Action Buttons -->
+    <div class="flex items-center space-x-1.5">
+      <button id="undo-btn" class="p-2 bg-indigo-950 hover:bg-indigo-800 border border-indigo-700 rounded-lg text-xs text-indigo-200" title="실행취소">
+        <i class="fa-solid fa-rotate-left"></i>
       </button>
-
-      <button id="padlet-btn" class="px-2 py-1 sm:px-3 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] sm:text-xs flex items-center gap-1 shadow transition whitespace-nowrap shrink-0">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">패들렛</span>
+      <button id="clear-btn" class="p-2 bg-indigo-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-lg text-xs" title="전체 지우기">
+        <i class="fa-solid fa-trash-can"></i>
       </button>
-
-      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold flex items-center gap-1 whitespace-nowrap shrink-0">
-        <i class="fa-solid fa-user-graduate text-amber-400"></i>
-        <span id="user-badge-text" class="truncate max-w-[65px] sm:max-w-none">로그인 필요</span>
-      </div>
+      <button id="download-btn" class="px-2.5 py-1.5 bg-amber-500 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1">
+        <i class="fa-solid fa-download"></i> 저장
+      </button>
     </div>
   </header>
 
-  <!-- Main Workspace -->
-  <main class="flex-1 flex overflow-hidden">
-    
-    <!-- Left Sidebar: Tools & Properties -->
-    <aside class="w-80 bg-white border-r border-gray-200 p-4 flex flex-col space-y-5 overflow-y-auto shrink-0 shadow-inner">
-      
-      <!-- Techniques / Tools Selection -->
-      <div>
-        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <i class="fa-solid fa-paintbrush text-indigo-600"></i> 오일파스텔 표현 기법
-        </h2>
-        <div class="grid grid-cols-2 gap-2">
-          <button data-tool="basic" class="tool-btn active p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
-            <i class="fa-solid fa-pen-nib text-base"></i>
-            <span>기본 오일파스텔</span>
-          </button>
+  <!-- Center: Main Drawing Canvas Area -->
+  <main class="flex-1 relative flex items-center justify-center bg-slate-950 overflow-hidden">
+    <!-- Zoom HUD HUD Badge -->
+    <div class="absolute top-3 left-3 z-10 bg-slate-900/80 text-slate-200 text-[10px] px-2.5 py-1 rounded-full border border-slate-700 backdrop-blur-sm pointer-events-none flex items-center gap-1.5">
+      <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
+      <span id="zoom-val">100%</span>
+      <span class="text-slate-500">| 두 손가락 핀치 줌</span>
+    </div>
 
-          <button data-tool="scratch" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
-            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
-            <span>스크래치 툴</span>
-          </button>
-
-          <button data-tool="impasto" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
-            <i class="fa-solid fa-cubes-stacked text-base"></i>
-            <span>임파스토 (마띠에르)</span>
-          </button>
-
-          <button data-tool="smudge" class="tool-btn p-2.5 border rounded-xl flex flex-col items-center justify-center text-xs font-bold gap-1 transition border-gray-200 bg-gray-50 hover:bg-indigo-50">
-            <i class="fa-solid fa-hand-back-fist text-base text-amber-600"></i>
-            <span>스머지 (문지르기)</span>
-          </button>
-        </div>
+    <div id="canvas-wrapper" class="canvas-container rounded-xl overflow-hidden relative" style="width: 606px; height: 860px;">
+      <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
+        <canvas id="main-canvas" width="606" height="860" class="block w-full h-full"></canvas>
+        <div class="paper-texture"></div>
       </div>
-
-      <!-- Tool Specific Controls -->
-      <div id="tool-settings" class="bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 space-y-3">
-        <div>
-          <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
-            <span>붓 크기 (Thickness)</span>
-            <span id="brush-size-val" class="text-indigo-600">20px</span>
-          </div>
-          <input type="range" id="brush-size" min="5" max="80" value="20" class="w-full accent-indigo-600 cursor-pointer">
-        </div>
-
-        <div>
-          <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
-            <span>밀도/불투명도 (Opacity)</span>
-            <span id="brush-opacity-val" class="text-indigo-600">90%</span>
-          </div>
-          <input type="range" id="brush-opacity" min="10" max="100" value="90" class="w-full accent-indigo-600 cursor-pointer">
-        </div>
-
-        <div class="border-t border-indigo-200 pt-2.5 mt-1">
-          <div class="flex justify-between items-center text-xs font-bold text-gray-700 mb-1">
-            <span class="flex items-center gap-1">
-              <i class="fa-solid fa-gauge-high text-indigo-600"></i> 필압 (Pressure)
-            </span>
-            <span id="pressure-meter-val" class="text-indigo-600">-</span>
-          </div>
-          <div class="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-            <div id="pressure-meter-fill" class="h-full bg-indigo-500 rounded-full" style="width:0%"></div>
-          </div>
-          <p class="text-[10px] text-gray-400 mt-1 leading-snug">펜/터치 필압을 지원하는 기기는 실제 압력을, 마우스는 그리는 속도를 반영합니다.</p>
-        </div>
-      </div>
-
-      <!-- Impasto Brush Presets -->
-      <div id="impasto-brush-settings" class="impasto-brush-panel hidden">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold uppercase tracking-wider mb-0 flex items-center gap-1.5">
-            <i class="fa-solid fa-layer-group text-indigo-400"></i> 임파스토 브러시
-          </h2>
-          <span class="text-[10px] text-slate-400 font-bold">4종</span>
-        </div>
-        <p class="text-[10px] text-slate-400 mb-2">Dabbers, Thick Paints, Rakes, 3D Smudges 중 선택하세요.</p>
-        <div class="impasto-brush-grid" id="impasto-brush-grid"></div>
-      </div>
-
-      <!-- Color Palette Selection -->
-      <div>
-        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <i class="fa-solid fa-eye-dropper text-indigo-600"></i> 색상 선택 (Color Palette)
-        </h2>
-        
-        <div class="flex items-center space-x-3 mb-3 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
-          <div class="flex-1 text-center">
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">주 색상 (Primary)</label>
-            <input type="color" id="primary-color" value="#2563eb" class="w-12 h-12 rounded-lg cursor-pointer border border-gray-300 shadow-sm p-0.5 bg-white">
-          </div>
-        </div>
-
-        <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-200">
-          <label class="block text-[11px] font-bold text-gray-600 mb-1.5 flex items-center gap-1">
-            <i class="fa-solid fa-hashtag text-indigo-500"></i> 오일파스텔 번호로 색상 선택 (MOPV 72색)
-          </label>
-          <div class="flex gap-1.5 mb-2">
-            <input type="text" id="color-number-input" inputmode="numeric" placeholder="번호 입력 (예: 221)" class="flex-1 min-w-0 px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <button id="color-number-apply" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shrink-0 transition">선택</button>
-          </div>
-          <div id="mopv-color-grid" class="grid grid-cols-6 gap-1 max-h-52 overflow-y-auto p-1 bg-white rounded-lg border border-gray-200"></div>
-          <p id="mopv-selected-info" class="mt-1.5 text-[11px] text-gray-500 font-semibold min-h-[14px]"></p>
-        </div>
-      </div>
-
-      <div class="mt-auto bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-        <p class="font-bold flex items-center gap-1 mb-1"><i class="fa-solid fa-lightbulb text-amber-600"></i> 기법 활용 팁</p>
-        <p id="tip-text">보라 ➔ 연두 ➔ 파랑 순서로 색을 겹쳐칠한 뒤 <b>스크래치 툴</b>로 긁어보세요!</p>
-      </div>
-    </aside>
-
-    <!-- Center: Main Drawing Canvas -->
-    <section class="flex-1 bg-gray-200 p-2 sm:p-4 flex flex-col items-center justify-center relative overflow-hidden">
-      <div class="w-full max-w-[900px] mb-1.5 flex items-center justify-between px-1 flex-wrap gap-1 text-[11px] sm:text-xs">
-        <div class="font-bold text-gray-600 flex items-center gap-1.5 whitespace-nowrap">
-          <i class="fa-solid fa-paint-roller text-indigo-600"></i>
-          <span>캔버스</span>
-          <span id="canvas-size-label" class="text-gray-400 font-normal">A5 · 세로</span>
-        </div>
-
-        <div class="flex items-center gap-1 flex-wrap justify-end">
-          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
-            <select id="canvas-size-select" class="text-xs font-bold text-gray-700 bg-transparent focus:outline-none cursor-pointer pr-1">
-              <option value="a5">A5</option> <option value="a4">A4</option> <option value="b5">B5</option>
-              <option value="square">1:1</option> <option value="4:3">4:3</option> <option value="16:9">16:9</option>
-            </select>
-            <div class="h-3.5 w-px bg-gray-200"></div>
-            <button id="orientation-portrait-btn" class="orientation-btn px-1.5 py-0.5 rounded text-xs font-bold">세로</button>
-            <button id="orientation-landscape-btn" class="orientation-btn px-1.5 py-0.5 rounded text-xs font-bold">가로</button>
-          </div>
-
-          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
-            <button id="pan-tool-btn" class="px-2 py-0.5 text-gray-700 hover:text-indigo-600 rounded text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-hand"></i></button>
-            <div class="h-3.5 w-px bg-gray-200"></div>
-            <button id="zoom-out-btn" class="p-0.5 text-xs"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-            <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-0.5 min-w-[32px] text-center">100%</span>
-            <button id="zoom-in-btn" class="p-0.5 text-xs"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-            <button id="zoom-reset-btn" class="p-0.5 text-xs"><i class="fa-solid fa-rotate-right"></i></button>
-          </div>
-        </div>
-      </div>
-
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair max-w-full max-h-full" style="width: 606px; height: 860px;">
-        <div class="absolute bottom-2 left-2 z-20 bg-gray-900/70 text-white text-[10px] px-2.5 py-1 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1">
-          <i class="fa-solid fa-circle-info text-amber-400"></i>
-          <span>휠/핀치: 확대/축소 | 드래그: 이동</span>
-        </div>
-        <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
-          <canvas id="main-canvas" width="606" height="860" class="block w-full h-full"></canvas>
-          <div class="paper-texture"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Right Sidebar: Reference Photo & Color Picker Loupe -->
-    <aside class="w-80 bg-white border-l border-gray-200 p-4 flex flex-col space-y-4 overflow-y-auto shrink-0 shadow-inner">
-      <div>
-        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <i class="fa-solid fa-image text-indigo-600"></i> 참고 그림 & 돋보기 스포이드
-        </h2>
-        <label class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl cursor-pointer transition mb-2">
-          <i class="fa-solid fa-upload"></i> 참고 이미지 업로드
-          <input type="file" id="ref-image-input" accept="image/*" class="hidden">
-        </label>
-
-        <div id="ref-image-container" class="relative bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden min-h-[180px] flex items-center justify-center group cursor-crosshair">
-          <img id="ref-image" class="hidden max-h-[250px] w-full object-contain cursor-crosshair select-none" alt="참고 이미지">
-          <div id="magnifier-loupe" class="hidden fixed pointer-events-none w-24 h-28 rounded-full border-4 border-indigo-600 shadow-2xl overflow-hidden bg-white z-50 transform -translate-x-1/2 -translate-y-1/2">
-            <canvas id="loupe-canvas" width="112" height="112" class="w-full h-full block"></canvas>
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="w-2.5 h-2.5 rounded-full border-2 border-red-500 bg-red-500/20 shadow"></div>
-            </div>
-          </div>
-          <div id="ref-placeholder" class="text-center p-4 text-gray-400">
-            <i class="fa-solid fa-photo-film text-2xl mb-1"></i>
-            <p class="text-xs font-bold">사진을 업로드하면<br>옆에 두고 그릴 수 있습니다.</p>
-          </div>
-        </div>
-
-        <div id="eyedropper-badge" class="mt-2 bg-gray-50 border border-gray-200 rounded-lg p-2 flex items-center justify-between text-xs">
-          <span class="text-gray-600 font-bold flex items-center gap-1"><i class="fa-solid fa-pipette text-indigo-600"></i> 추출 색:</span>
-          <div class="flex items-center space-x-2">
-            <div id="picked-color-swatch" class="w-4 h-4 rounded-full border border-gray-300 bg-blue-600"></div>
-            <span id="picked-color-code" class="font-mono text-[11px] text-gray-700">#2563EB</span>
-          </div>
-        </div>
-
-        <div id="extracted-palette-section" class="mt-3 bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100 hidden">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 block">대표 색상 (10가지)</span>
-          <div id="extracted-color-grid" class="grid grid-cols-5 gap-1.5"></div>
-        </div>
-      </div>
-
-      <div class="mt-auto border-t border-gray-200 pt-3">
-        <button id="padlet-settings-btn" class="w-full text-left text-xs text-gray-400 hover:text-indigo-600 flex items-center justify-between py-1">
-          <span><i class="fa-solid fa-gear"></i> 교사용 패들렛 URL 설정</span>
-          <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        </button>
-      </div>
-    </aside>
-
+    </div>
   </main>
 
-  <!-- Mobile Floating Navigation Bar -->
-  <div id="mobile-nav-bar" class="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 text-white backdrop-blur-md px-2.5 py-1.5 rounded-full border border-slate-700 shadow-2xl items-center gap-1.5 text-xs font-bold transition-all">
-    <button id="mobile-btn-tools" type="button" class="px-3 py-1.5 bg-indigo-600 text-white rounded-full flex items-center gap-1 transition whitespace-nowrap">
-      <i class="fa-solid fa-paintbrush"></i> 도구/색상
-    </button>
-    <button id="mobile-btn-canvas" type="button" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1 transition whitespace-nowrap">
-      <i class="fa-solid fa-expand"></i> 캔버스만
-    </button>
-    <button id="mobile-btn-ref" type="button" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1 transition whitespace-nowrap">
-      <i class="fa-solid fa-image"></i> 참고 그림
-    </button>
+  <!-- Bottom Mobile Drawer Sheets (Sliding Panels) -->
+  
+  <!-- Panel 1: 표현 기법 (Tools) -->
+  <div id="drawer-tools" class="mobile-drawer">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+      <h3 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-paintbrush"></i> 표현 기법 선택</h3>
+      <button class="drawer-close-btn text-xs text-slate-400 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mb-4">
+      <button data-tool="basic" class="tool-btn active p-2 border rounded-xl flex items-center justify-center text-xs font-bold gap-2">
+        <i class="fa-solid fa-pen-nib"></i> 기본 오일파스텔
+      </button>
+      <button data-tool="scratch" class="tool-btn p-2 border rounded-xl flex items-center justify-center text-xs font-bold gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> 스크래치 툴
+      </button>
+      <button data-tool="impasto" class="tool-btn p-2 border rounded-xl flex items-center justify-center text-xs font-bold gap-2">
+        <i class="fa-solid fa-cubes-stacked"></i> 임파스토
+      </button>
+      <button data-tool="smudge" class="tool-btn p-2 border rounded-xl flex items-center justify-center text-xs font-bold gap-2">
+        <i class="fa-solid fa-hand-back-fist text-amber-500"></i> 스머지
+      </button>
+    </div>
+    <!-- Slider Settings -->
+    <div class="space-y-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+      <div>
+        <div class="flex justify-between text-xs font-bold mb-1"><span>붓 크기</span><span id="brush-size-val" class="text-indigo-400">20px</span></div>
+        <input type="range" id="brush-size" min="5" max="80" value="20" class="w-full accent-indigo-500">
+      </div>
+      <div>
+        <div class="flex justify-between text-xs font-bold mb-1"><span>밀도/불투명도</span><span id="brush-opacity-val" class="text-indigo-400">90%</span></div>
+        <input type="range" id="brush-opacity" min="10" max="100" value="90" class="w-full accent-indigo-500">
+      </div>
+      <div class="pt-2 border-t border-slate-800">
+        <div class="flex justify-between text-xs font-bold"><span>필압 (Pressure)</span><span id="pressure-meter-val" class="text-indigo-400">-</span></div>
+        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-1"><div id="pressure-meter-fill" class="h-full bg-indigo-500" style="width:0%"></div></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Login Modal -->
-  <div id="login-modal" class="fixed inset-0 bg-indigo-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
-      <div class="text-center mb-5">
-        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
-          <i class="fa-solid fa-paint-brush text-xl"></i>
-        </div>
-        <h3 class="text-lg font-extrabold text-gray-800">오일파스텔 스튜디오 입장</h3>
-        <p class="text-xs text-gray-500 mt-1">수업 참가를 위해 학번과 이름을 입력해주세요.</p>
-      </div>
+  <!-- Panel 2: 임파스토 브러시 (Impasto Presets) -->
+  <div id="drawer-impasto" class="mobile-drawer">
+    <div class="flex items-center justify-between mb-2 border-b border-slate-700/60 pb-2">
+      <h3 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> 임파스토 브러시 (4대 범주)</h3>
+      <button class="drawer-close-btn text-xs text-slate-400 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div class="impasto-brush-grid" id="impasto-brush-grid"></div>
+  </div>
 
-      <form id="login-form" class="space-y-4">
+  <!-- Panel 3: 색상 팔레트 (Palette) -->
+  <div id="drawer-color" class="mobile-drawer">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+      <h3 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-palette"></i> MOPV 72색 팔레트</h3>
+      <button class="drawer-close-btn text-xs text-slate-400 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <div class="flex items-center gap-3 mb-3 bg-slate-900/60 p-2 rounded-xl border border-slate-800">
+      <label class="text-xs font-bold">주 색상</label>
+      <input type="color" id="primary-color" value="#2563eb" class="w-8 h-8 rounded border-none bg-transparent cursor-pointer">
+      <div class="flex-1 flex gap-1">
+        <input type="text" id="color-number-input" placeholder="번호 (예: 221)" class="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs">
+        <button id="color-number-apply" class="px-3 py-1 bg-indigo-600 rounded text-xs font-bold shrink-0">선택</button>
+      </div>
+    </div>
+    <div id="mopv-color-grid" class="grid grid-cols-6 gap-1 max-h-48 overflow-y-auto p-1 bg-slate-900 rounded-xl border border-slate-800"></div>
+    <p id="mopv-selected-info" class="mt-2 text-[11px] text-slate-400 font-semibold text-center"></p>
+  </div>
+
+  <!-- Panel 4: 참고 그림 & 스포이드 (Reference) -->
+  <div id="drawer-ref" class="mobile-drawer">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-700/60 pb-2">
+      <h3 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5"><i class="fa-solid fa-image"></i> 참고 그림 & 스포이드</h3>
+      <button class="drawer-close-btn text-xs text-slate-400 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+    </div>
+    <label class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-900/50 border border-indigo-700 text-indigo-200 font-bold text-xs rounded-xl cursor-pointer mb-2">
+      <i class="fa-solid fa-upload"></i> 참고 이미지 업로드
+      <input type="file" id="ref-image-input" accept="image/*" class="hidden">
+    </label>
+    <div id="ref-image-container" class="relative bg-slate-900 border border-slate-700 rounded-xl overflow-hidden min-h-[140px] flex items-center justify-center">
+      <img id="ref-image" class="hidden max-h-[180px] w-full object-contain" alt="참고 이미지">
+      <div id="ref-placeholder" class="text-center p-3 text-slate-500 text-xs">사진을 업로드하면 터치하여 색상을 추출할 수 있습니다.</div>
+    </div>
+    <div id="eyedropper-badge" class="mt-2 bg-slate-900 border border-slate-800 rounded-lg p-2 flex items-center justify-between text-xs">
+      <span class="text-slate-400 font-bold">추출 색:</span>
+      <div class="flex items-center space-x-2">
+        <div id="picked-color-swatch" class="w-4 h-4 rounded-full border border-slate-600 bg-blue-600"></div>
+        <span id="picked-color-code" class="font-mono text-[11px] text-slate-300">#2563EB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Fixed Bottom Navigation Bar -->
+  <nav class="h-[60px] bg-slate-900 border-t border-slate-800 flex items-center justify-around px-2 z-50 shrink-0">
+    <button data-target="drawer-tools" class="nav-tab-btn flex flex-col items-center gap-1 text-slate-400 text-[10px] font-bold py-1 px-3">
+      <i class="fa-solid fa-paintbrush text-base"></i><span>기법/붓</span>
+    </button>
+    <button data-target="drawer-impasto" class="nav-tab-btn flex flex-col items-center gap-1 text-slate-400 text-[10px] font-bold py-1 px-3">
+      <i class="fa-solid fa-layer-group text-base"></i><span>임파스토</span>
+    </button>
+    <button data-target="drawer-color" class="nav-tab-btn flex flex-col items-center gap-1 text-slate-400 text-[10px] font-bold py-1 px-3">
+      <i class="fa-solid fa-palette text-base"></i><span>팔레트</span>
+    </button>
+    <button data-target="drawer-ref" class="nav-tab-btn flex flex-col items-center gap-1 text-slate-400 text-[10px] font-bold py-1 px-3">
+      <i class="fa-solid fa-image text-base"></i><span>참고그림</span>
+    </button>
+    <button id="btn-close-all" class="flex flex-col items-center gap-1 text-indigo-400 text-[10px] font-bold py-1 px-3">
+      <i class="fa-solid fa-eye text-base"></i><span>캔버스만</span>
+    </button>
+  </nav>
+
+  <!-- Login Modal -->
+  <div id="login-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 text-white rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-slate-800">
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 bg-indigo-900/80 text-indigo-400 rounded-xl flex items-center justify-center mx-auto mb-2 border border-indigo-700">
+          <i class="fa-solid fa-mobile-screen-button text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-bold">오일파스텔 스튜디오</h3>
+        <p class="text-xs text-slate-400 mt-1">학번과 이름을 입력해주세요.</p>
+      </div>
+      <form id="login-form" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">학번 (예: 20101)</label>
-          <input type="text" id="student-id" required placeholder="학번 5자리를 입력하세요" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-xs font-bold text-slate-400 mb-1">학번 (예: 20101)</label>
+          <input type="text" id="student-id" required placeholder="학번 5자리" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
         <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">이름 (예: 홍길동)</label>
-          <input type="text" id="student-name" required placeholder="이름을 입력하세요" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-xs font-bold text-slate-400 mb-1">이름 (예: 홍길동)</label>
+          <input type="text" id="student-name" required placeholder="이름 입력" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">기기 모드 선택 (Device Mode)</label>
-          <select id="device-mode-select" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-indigo-900 bg-indigo-50/50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="desktop">PC / 태블릿 모드 (기본)</option>
-            <option value="mobile">스마트폰 모바일 모드</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition">
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition mt-2">
           스튜디오 입장하기
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Padlet URL Setting Modal -->
-  <div id="padlet-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl p-5 w-full max-w-md">
-      <h3 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-1.5">
-        <i class="fa-solid fa-gear text-indigo-600"></i> 패들렛 제출 링크 설정
-      </h3>
-      <p class="text-xs text-gray-500 mb-3">선생님의 학급 패들렛 게시판 URL을 등록해주세요.</p>
-      <input type="url" id="padlet-url-input" placeholder="https://padlet.com/..." class="w-full px-3 py-2 border rounded-xl text-xs mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      <div class="flex justify-end space-x-2">
-        <button id="padlet-modal-cancel" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-300">취소</button>
-        <button id="padlet-modal-save" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700">저장</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-900/90 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2">
-    <i class="fa-solid fa-circle-info text-amber-400"></i>
-    <span id="toast-msg">알림 메시지</span>
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2 border border-slate-700">
+    <i class="fa-solid fa-circle-info text-amber-400"></i><span id="toast-msg">알림</span>
   </div>
 
   <script>
+    // 어디서든 즉시 쓸 수 있게 toast 함수를 최상단에 먼저 정의
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      if (!toast || !toastMsg) { console.warn(msg); return; }
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2500);
+    }
+    // 스크립트 어디서든 오류가 나면 화면에 바로 표시 (기존엔 오류 발생 시 이후 코드가
+    // 전혀 실행되지 않아 "버튼이 눌리지 않는" 것처럼 보였음)
+    window.addEventListener('error', (e) => {
+      console.error(e.error || e.message);
+      showToast('오류 발생: ' + (e.message || '알 수 없는 오류'));
+    });
+
     const state = {
-      studentId: '',
-      studentName: '',
-      deviceMode: 'desktop',
-      tool: 'basic',
-      primaryColor: '#2563eb',
-      brushSize: 20,
-      opacity: 0.9,
-      padletUrl: 'https://padlet.com',
-      isDrawing: false,
-      lastX: 0,
-      lastY: 0,
-      history: [],
-      historyIndex: -1,
-      maxHistory: 10,
+      studentId: '', studentName: '',
+      tool: 'basic', primaryColor: '#2563eb',
+      brushSize: 20, opacity: 0.9,
+      isDrawing: false, lastX: 0, lastY: 0,
+      history: [], historyIndex: -1, maxHistory: 10,
       zoom: 1.0, panX: 0, panY: 0,
-      isPanToolActive: false, isSpacePressed: false, isPanning: false,
-      startMouseX: 0, startMouseY: 0,
-      strokeStack: [],
-      pressure: 0.6,
-      impastoBrush: 1,
-      impastoAngle: 0, impastoPhase: 0, impastoSeed: 0,
-      impastoLastDrawX: 0, impastoLastDrawY: 0,
-      lastMoveTime: 0, lastMoveX: 0, lastMoveY: 0,
+      strokeStack: [], pressure: 0.6,
+      impastoBrush: 'dabber_round',
       canvasPreset: 'a5', canvasOrientation: 'portrait'
     };
 
-    const CANVAS_SIZE_PRESETS = {
-      a5:     { label: 'A5',            ratio: 148 / 210 },
-      a4:     { label: 'A4',            ratio: 210 / 297 },
-      b5:     { label: 'B5',            ratio: 176 / 250 },
-      square: { label: '정사각형',       ratio: 1 },
-      '4:3':  { label: '4:3',           ratio: 3 / 4 },
-      '16:9': { label: '16:9',          ratio: 9 / 16 }
-    };
+    const CANVAS_SIZE_PRESETS = { a5: { ratio: 148 / 210 } };
     const CANVAS_LONG_EDGE = 860;
 
     const MOPV_COLORS = [
       { num: 201, name: 'Lemon Yellow', hex: '#f9f052' },
       { num: 202, name: 'Yellow', hex: '#fee207' },
-      { num: 203, name: 'Orangish Yellow', hex: '#f9c462' },
-      { num: 204, name: 'Golden Yellow', hex: '#f19c00' },
       { num: 205, name: 'Orange', hex: '#ef7f11' },
-      { num: 206, name: 'Flame Red', hex: '#e95304' },
-      { num: 207, name: 'Vermilion', hex: '#e72112' },
       { num: 208, name: 'Scarlet', hex: '#e0132c' },
-      { num: 209, name: 'Carmine', hex: '#b91320' },
       { num: 210, name: 'Purple', hex: '#a80f6b' },
-      { num: 211, name: 'Lilac', hex: '#49225d' },
-      { num: 212, name: 'Violet', hex: '#362365' },
-      { num: 213, name: 'Periwinkle Blue', hex: '#5e529f' },
-      { num: 214, name: 'Mauve', hex: '#8f549e' },
-      { num: 215, name: 'Light Purple Violet', hex: '#b395c5' },
-      { num: 216, name: 'Pink', hex: '#d67cad' },
-      { num: 217, name: 'Sky Blue', hex: '#7a92ca' },
       { num: 218, name: 'Ultramarine Blue', hex: '#11338c' },
-      { num: 219, name: 'Prussian Blue', hex: '#123151' },
-      { num: 220, name: 'Sapphire', hex: '#0f3266' },
       { num: 221, name: 'Cobalt Blue', hex: '#09519d' },
-      { num: 222, name: 'Light Blue', hex: '#188acc' },
-      { num: 223, name: 'Turquoise Blue', hex: '#1db6db' },
-      { num: 224, name: 'Turquoise Green', hex: '#13b3aa' },
-      { num: 225, name: 'Lime Green', hex: '#83c57d' },
-      { num: 226, name: 'Jade Green', hex: '#00a881' },
-      { num: 227, name: 'Yellow Green', hex: '#72bb48' },
       { num: 228, name: 'Grass Green', hex: '#008e47' },
-      { num: 229, name: 'Emerald Green', hex: '#007045' },
-      { num: 230, name: 'Dark Green', hex: '#003923' },
-      { num: 231, name: 'Malachite Green', hex: '#00605d' },
-      { num: 232, name: 'Moss Green', hex: '#5c662e' },
-      { num: 233, name: 'Olive', hex: '#6f6334' },
-      { num: 234, name: 'Olive Brown', hex: '#795d34' },
-      { num: 235, name: 'Raw Umber', hex: '#492628' },
       { num: 236, name: 'Brown', hex: '#652e21' },
-      { num: 237, name: 'Russet', hex: '#be4324' },
-      { num: 238, name: 'Ochre', hex: '#cea24c' },
-      { num: 239, name: 'Salmon Pink', hex: '#f19a76' },
-      { num: 240, name: 'Salmon', hex: '#f5b078' },
-      { num: 241, name: 'Light Olive', hex: '#9db31a' },
-      { num: 242, name: 'Olive Yellow', hex: '#b4a114' },
-      { num: 243, name: 'Pale Yellow', hex: '#fff4af' },
       { num: 244, name: 'White', hex: '#fefefe' },
-      { num: 245, name: 'Light Grey', hex: '#b4cbd6' },
-      { num: 246, name: 'Grey', hex: '#90a09f' },
-      { num: 247, name: 'Dark Grey', hex: '#495957' },
-      { num: 248, name: 'Black', hex: '#010201' },
-      { num: 249, name: 'Silver Grey', hex: '#cdcac6' },
-      { num: 250, name: 'Pale Ochre', hex: '#e7b64e' },
-      { num: 251, name: 'Dark Yellow', hex: '#f7b31d' },
-      { num: 252, name: 'Golden Ochre', hex: '#d57f1b' },
-      { num: 253, name: 'Burnt Orange', hex: '#c96322' },
-      { num: 254, name: 'Grey Pink', hex: '#c49995' },
-      { num: 255, name: 'Light Mauve', hex: '#a090b6' },
-      { num: 256, name: 'Deep Salmon', hex: '#ed7361' },
-      { num: 257, name: 'Cold Pink', hex: '#dc1a7d' },
-      { num: 258, name: 'Rose Pink', hex: '#cd0451' },
-      { num: 259, name: 'Deep Magenta', hex: '#cf043d' },
-      { num: 260, name: 'Cadmium Red', hex: '#e23e4d' },
-      { num: 261, name: 'Azure Violet', hex: '#1a2067' },
-      { num: 262, name: 'Light Prussian Blue', hex: '#034177' },
-      { num: 263, name: 'Medium Azure Violet', hex: '#3960ac' },
-      { num: 264, name: 'Light Azure Violet', hex: '#76a4d6' },
-      { num: 265, name: 'Ice Blue', hex: '#a2d3f2' },
-      { num: 266, name: 'Pale Green', hex: '#a6d18a' },
-      { num: 267, name: 'Olive Light', hex: '#419735' },
-      { num: 268, name: 'Light Emerald Green', hex: '#0c8f5e' },
-      { num: 269, name: 'Light Moss Green', hex: '#1e612d' },
-      { num: 270, name: 'Green Grey', hex: '#2d4b56' },
-      { num: 271, name: 'Verona Green', hex: '#2e4b3f' },
-      { num: 272, name: 'Dark Cool Grey', hex: '#122e46' }
+      { num: 248, name: 'Black', hex: '#010201' }
     ];
 
-    const IMPASTO_PRESETS = {
-      1: { key: 'dabber',   name: 'Dabbers' },
-      2: { key: 'thick',    name: 'Thick Paints' },
-      3: { key: 'rake',     name: 'Rakes' },
-      4: { key: 'smudge3d', name: '3D Smudges' }
-    };
+    const IMPASTO_PRESETS = [
+      { id: 'dabber_round', name: 'Round Dabber', icon: 'fa-circle', type: 'dabber', desc: '3D 입체 물감점' },
+      { id: 'dabber_textured', name: 'Textured Dabber', icon: 'fa-certificate', type: 'dabber_textured', desc: '거친 입체 질감 점' },
+      { id: 'thick_fat_spread', name: 'Fat Spread Knife', icon: 'fa-vector-square', type: 'flat', widthMult: 1.8, desc: '대형 팔레트 나이프' },
+      { id: 'thick_flat_smooth', name: 'Flat Smooth', icon: 'fa-square', type: 'flat', widthMult: 1.1, desc: '표준 유화 나이프' },
+      { id: 'thick_square', name: 'Square Smooth', icon: 'fa-cubes', type: 'square', widthMult: 0.85, desc: '각진 사각 단면' },
+      { id: 'thick_filbert', name: 'Filbert Smooth', icon: 'fa-paintbrush', type: 'filbert', widthMult: 1.0, desc: '부드러운 타원 오일' },
+      { id: 'thick_liner', name: 'Liner Smooth', icon: 'fa-pen-fancy', type: 'liner', widthMult: 0.35, desc: '가늘고 뚜렷한 입체선' },
+      { id: 'rake_plaster', name: 'Plaster Rake (4줄)', icon: 'fa-bars', type: 'rake', lines: 4, desc: '4줄 갈퀴 결' },
+      { id: 'rake_fine', name: 'Fine Rake (7줄)', icon: 'fa-grip-lines', type: 'rake', lines: 7, desc: '7줄 미세 갈퀴 결' },
+      { id: 'smudge_3d_pull', name: '3D Pull Smudge', icon: 'fa-hand-pointer', type: '3d_smudge', desc: '3D 물감 늘리기' }
+    ];
 
-    // DOM Elements
+    // DOM References
     const loginModal = document.getElementById('login-modal');
     const loginForm = document.getElementById('login-form');
     const studentIdInput = document.getElementById('student-id');
@@ -555,912 +409,322 @@
     const mainCanvas = document.getElementById('main-canvas');
     const mainCtx = mainCanvas.getContext('2d');
 
-    const canvasSizeSelect = document.getElementById('canvas-size-select');
-    const orientationPortraitBtn = document.getElementById('orientation-portrait-btn');
-    const orientationLandscapeBtn = document.getElementById('orientation-landscape-btn');
-    const canvasSizeLabel = document.getElementById('canvas-size-label');
-
-    const panToolBtn = document.getElementById('pan-tool-btn');
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const zoomResetBtn = document.getElementById('zoom-reset-btn');
-    const zoomVal = document.getElementById('zoom-val');
-
     const primaryColorInput = document.getElementById('primary-color');
-
-    const colorNumberInput = document.getElementById('color-number-input');
-    const colorNumberApplyBtn = document.getElementById('color-number-apply');
-    const mopvColorGrid = document.getElementById('mopv-color-grid');
-    const mopvSelectedInfo = document.getElementById('mopv-selected-info');
-
     const brushSizeInput = document.getElementById('brush-size');
     const brushSizeVal = document.getElementById('brush-size-val');
     const brushOpacityInput = document.getElementById('brush-opacity');
     const brushOpacityVal = document.getElementById('brush-opacity-val');
     const pressureMeterFill = document.getElementById('pressure-meter-fill');
     const pressureMeterVal = document.getElementById('pressure-meter-val');
-
-    const refImageContainer = document.getElementById('ref-image-container');
-    const refImageInput = document.getElementById('ref-image-input');
-    const refImage = document.getElementById('ref-image');
-    const refPlaceholder = document.getElementById('ref-placeholder');
-    const magnifierLoupe = document.getElementById('magnifier-loupe');
-    const loupeCanvas = document.getElementById('loupe-canvas');
-    const loupeCtx = loupeCanvas.getContext('2d');
-
-    const pickedColorSwatch = document.getElementById('picked-color-swatch');
-    const pickedColorCode = document.getElementById('picked-color-code');
-
-    const undoBtn = document.getElementById('undo-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const downloadBtn = document.getElementById('download-btn');
-    const padletBtn = document.getElementById('padlet-btn');
-    const padletSettingsBtn = document.getElementById('padlet-settings-btn');
-    const padletModal = document.getElementById('padlet-modal');
-    const padletUrlInput = document.getElementById('padlet-url-input');
-    const padletModalSave = document.getElementById('padlet-modal-save');
-    const padletModalCancel = document.getElementById('padlet-modal-cancel');
-
-    const tipText = document.getElementById('tip-text');
+    const zoomVal = document.getElementById('zoom-val');
 
     loginForm.onsubmit = (e) => {
       e.preventDefault();
-      const id = studentIdInput.value.trim();
-      const name = studentNameInput.value.trim();
-      if (!id || !name) {
+      state.studentId = studentIdInput.value.trim();
+      state.studentName = studentNameInput.value.trim();
+
+      // 일부 앱 내장 브라우저는 required 안내창을 못 띄워서 그냥 아무 반응이 없는 것처럼
+      // 보일 수 있어 직접 검증하고 토스트로 알려준다.
+      if (!state.studentId || !state.studentName) {
         showToast('학번과 이름을 모두 입력해주세요.');
         return;
       }
-      state.studentId = id;
-      state.studentName = name;
-      userBadgeText.innerText = `${id} ${name}`;
 
-      const modeSelect = document.getElementById('device-mode-select');
-      const mode = modeSelect ? modeSelect.value : 'desktop';
-      state.deviceMode = mode;
-      if (mode === 'mobile') {
-        enableMobileMode();
-      }
-
-      loginModal.style.display = 'none';
+      userBadgeText.innerText = `${state.studentId} ${state.studentName}`;
       loginModal.classList.add('hidden');
-      showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
+      loginModal.style.display = 'none';
+      loginModal.style.pointerEvents = 'none';
+
+      // Auto fit canvas zoom to mobile screen
+      state.zoom = Math.min(1.0, (window.innerWidth - 24) / mainCanvas.width);
+      updateTransform();
+      showToast('스튜디오 입장을 환영합니다!');
     };
 
-    function getContrastTextColor(hex) {
-      const { r, g, b } = hexToRgb(hex);
-      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-      return luminance > 0.6 ? '#1f2937' : '#ffffff';
-    }
+    // Mobile Bottom Sheet Navigation
+    const drawers = document.querySelectorAll('.mobile-drawer');
+    const navBtns = document.querySelectorAll('.nav-tab-btn');
 
-    function applyMopvColor(num, { silent = false } = {}) {
-      const color = MOPV_COLORS.find(c => c.num === num);
-      if (!color) {
-        if (!silent) showToast(`${num}번 오일파스텔 색상을 찾을 수 없습니다.`);
-        return false;
-      }
+    navBtns.forEach(btn => {
+      btn.onclick = () => {
+        const targetId = btn.getAttribute('data-target');
+        drawers.forEach(d => {
+          if (d.id === targetId) {
+            d.classList.toggle('open');
+          } else {
+            d.classList.remove('open');
+          }
+        });
+      };
+    });
 
-      state.primaryColor = color.hex;
-      primaryColorInput.value = color.hex;
+    document.querySelectorAll('.drawer-close-btn, #btn-close-all').forEach(btn => {
+      btn.onclick = () => drawers.forEach(d => d.classList.remove('open'));
+    });
 
-      highlightMopvSwatch(num);
-      mopvSelectedInfo.innerText = `주 색상: No.${color.num} ${color.name}`;
-      if (!silent) showToast(`주 색상 선택: No.${color.num} ${color.name}`);
-      return true;
-    }
+    // Render Impasto Grid
+    const impastoGrid = document.getElementById('impasto-brush-grid');
+    IMPASTO_PRESETS.forEach(preset => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `impasto-preset ${preset.id === state.impastoBrush ? 'active' : ''}`;
+      button.dataset.impastoBrush = preset.id;
+      button.innerHTML = `
+        <div class="impasto-preset-icon"><i class="fa-solid ${preset.icon}"></i></div>
+        <div class="text-left overflow-hidden">
+          <div class="text-xs font-bold text-slate-200 truncate">${preset.name}</div>
+          <div class="text-[9px] text-slate-400 truncate">${preset.desc}</div>
+        </div>
+      `;
+      button.onclick = () => {
+        state.impastoBrush = preset.id;
+        document.querySelectorAll('.impasto-preset').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        showToast(`나이프: ${preset.name}`);
+      };
+      impastoGrid.appendChild(button);
+    });
 
-    function highlightMopvSwatch(num) {
-      mopvColorGrid.querySelectorAll('.mopv-swatch').forEach(el => {
-        el.classList.toggle('selected', parseInt(el.dataset.num, 10) === num);
-      });
-    }
+    // Tool switching
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.tool = btn.getAttribute('data-tool');
+      };
+    });
 
+    // MOPV Color Swatches
+    const mopvColorGrid = document.getElementById('mopv-color-grid');
     MOPV_COLORS.forEach(color => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mopv-swatch';
       btn.style.backgroundColor = color.hex;
-      btn.dataset.num = color.num;
-      btn.title = `No.${color.num} ${color.name}`;
-
-      const label = document.createElement('span');
-      label.innerText = color.num;
-      label.style.color = getContrastTextColor(color.hex);
-      btn.appendChild(label);
-
-      btn.onclick = () => applyMopvColor(color.num);
+      btn.onclick = () => {
+        state.primaryColor = color.hex;
+        primaryColorInput.value = color.hex;
+        showToast(`색상: ${color.name}`);
+      };
       mopvColorGrid.appendChild(btn);
     });
 
-    function submitColorNumber() {
-      const raw = colorNumberInput.value.trim();
-      const num = parseInt(raw, 10);
-      if (!raw || isNaN(num)) {
-        showToast('오일파스텔 번호를 숫자로 입력해주세요. (예: 221)');
-        return;
-      }
-      const applied = applyMopvColor(num);
-      if (applied) colorNumberInput.value = '';
-    }
-
-    colorNumberApplyBtn.onclick = submitColorNumber;
-    colorNumberInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitColorNumber();
-      }
-    });
-
-    function computeCanvasDimensions(presetKey, orientation) {
-      const preset = CANVAS_SIZE_PRESETS[presetKey] || CANVAS_SIZE_PRESETS.a5;
-      let w, h;
-      if (orientation === 'landscape') {
-        w = CANVAS_LONG_EDGE;
-        h = Math.round(CANVAS_LONG_EDGE * preset.ratio);
-      } else {
-        h = CANVAS_LONG_EDGE;
-        w = Math.round(CANVAS_LONG_EDGE * preset.ratio);
-      }
-      return { w, h, label: preset.label };
-    }
-
-    function updateCanvasSizeLabel() {
-      const { label } = computeCanvasDimensions(state.canvasPreset, state.canvasOrientation);
-      const orientLabel = state.canvasOrientation === 'portrait' ? '세로' : '가로';
-      canvasSizeLabel.innerText = `${label} · ${orientLabel}`;
-    }
-
-    function syncCanvasSizeControls() {
-      canvasSizeSelect.value = state.canvasPreset;
-      orientationPortraitBtn.classList.toggle('active', state.canvasOrientation === 'portrait');
-      orientationLandscapeBtn.classList.toggle('active', state.canvasOrientation === 'landscape');
-      updateCanvasSizeLabel();
-    }
-
-    function resizeCanvasTo(w, h) {
-      mainCanvas.width = w;
-      mainCanvas.height = h;
-      canvasWrapper.style.width = `${w}px`;
-      canvasWrapper.style.height = `${h}px`;
-
-      state.strokeStack = [];
-      state.history = [];
-      state.historyIndex = -1;
-      saveHistoryState();
-      renderCompositeCanvas();
-      resetZoomAndPan();
-    }
-
-    function applyCanvasSizeChange(presetKey, orientation) {
-      const hasArtwork = state.strokeStack.length > 0;
-
-      if (hasArtwork) {
-        const proceed = confirm('캔버스 크기를 변경하면 현재 그림이 모두 지워집니다. 계속하시겠습니까?');
-        if (!proceed) {
-          syncCanvasSizeControls();
-          return;
-        }
-      }
-
-      state.canvasPreset = presetKey;
-      state.canvasOrientation = orientation;
-      const { w, h, label } = computeCanvasDimensions(presetKey, orientation);
-      resizeCanvasTo(w, h);
-      syncCanvasSizeControls();
-
-      const orientLabel = orientation === 'portrait' ? '세로' : '가로';
-      showToast(`캔버스 크기: ${label} · ${orientLabel} (${w}×${h}px)`);
-    }
-
-    canvasSizeSelect.onchange = (e) => {
-      applyCanvasSizeChange(e.target.value, state.canvasOrientation);
-    };
-
-    orientationPortraitBtn.onclick = () => {
-      if (state.canvasOrientation === 'portrait') return;
-      applyCanvasSizeChange(state.canvasPreset, 'portrait');
-    };
-
-    orientationLandscapeBtn.onclick = () => {
-      if (state.canvasOrientation === 'landscape') return;
-      applyCanvasSizeChange(state.canvasPreset, 'landscape');
-    };
-
+    // Canvas Transform
     function updateTransform() {
       transformLayer.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
       zoomVal.innerText = `${Math.round(state.zoom * 100)}%`;
-      
-      if (state.isPanToolActive || state.isSpacePressed) {
-        canvasWrapper.style.cursor = state.isPanning ? 'grabbing' : 'grab';
-      } else {
-        canvasWrapper.style.cursor = 'crosshair';
-      }
     }
 
     function setZoom(newZoom) {
-      state.zoom = Math.min(Math.max(0.5, newZoom), 4.0);
+      state.zoom = Math.min(Math.max(0.4, newZoom), 3.5);
       updateTransform();
     }
 
-    function resetZoomAndPan() {
-      state.zoom = 1.0;
-      state.panX = 0;
-      state.panY = 0;
-      updateTransform();
+    // 2-Finger Touch Pinch Zoom & Pan for Mobile
+    let pinchStartDist = 0;
+    let pinchStartZoom = 1.0;
+
+    canvasWrapper.addEventListener('touchstart', (e) => {
+      drawers.forEach(d => d.classList.remove('open')); // Close drawers when tapping canvas
+      if (e.touches.length === 2) {
+        pinchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        pinchStartZoom = state.zoom;
+      }
+    }, { passive: true });
+
+    canvasWrapper.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && pinchStartDist) {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        setZoom(pinchStartZoom * (currentDist / pinchStartDist));
+      }
+    }, { passive: true });
+
+    canvasWrapper.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) pinchStartDist = 0;
+    });
+
+    // Impasto & Pastel Engine helpers
+    function hexToRgb(hex) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16) || 0;
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
     }
 
-    zoomInBtn.onclick = () => setZoom(state.zoom + 0.25);
-    zoomOutBtn.onclick = () => setZoom(state.zoom - 0.25);
-    zoomResetBtn.onclick = resetZoomAndPan;
+    function adjustColorBrightness(hex, factor) {
+      const { r, g, b } = hexToRgb(hex);
+      const clamp = v => Math.min(255, Math.max(0, Math.round(v * factor)));
+      return '#' + [r, g, b].map(v => clamp(v).toString(16).padStart(2, '0')).join('');
+    }
 
-    panToolBtn.onclick = () => {
-      state.isPanToolActive = !state.isPanToolActive;
-      if (state.isPanToolActive) {
-        panToolBtn.classList.add('bg-indigo-100', 'text-indigo-700');
-        showToast('손바닥(이동) 툴 활성화. 드래그하여 캔버스를 이동하세요.');
+    function drawImpastoKnifeStroke(x1, y1, x2, y2, ctx, pressure) {
+      const p = Math.max(0.2, pressure);
+      const preset = IMPASTO_PRESETS.find(pr => pr.id === state.impastoBrush) || IMPASTO_PRESETS[0];
+      const base = state.primaryColor;
+      const light = adjustColorBrightness(base, 1.45);
+      const shadow = adjustColorBrightness(base, 0.48);
+
+      const dx = x2 - x1, dy = y2 - y1;
+      const dist = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx);
+
+      ctx.save();
+
+      if (preset.type === 'dabber' || preset.type === 'dabber_textured') {
+        const r = (state.brushSize / 2) * (0.8 + p * 0.4);
+        ctx.translate(x2, y2);
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fillStyle = base;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(0, r * 0.15, r * 0.85, 0.1 * Math.PI, 0.9 * Math.PI);
+        ctx.strokeStyle = shadow;
+        ctx.lineWidth = r * 0.28;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, -r * 0.2, r * 0.68, 1.1 * Math.PI, 1.9 * Math.PI);
+        ctx.strokeStyle = light;
+        ctx.lineWidth = r * 0.25;
+        ctx.stroke();
+      } else if (preset.type === 'rake') {
+        const lines = preset.lines || 4;
+        const totalWidth = state.brushSize * (0.8 + p * 0.4);
+        const spacing = totalWidth / lines;
+        const nx = -Math.sin(angle), ny = Math.cos(angle);
+
+        for (let i = 0; i < lines; i++) {
+          const offset = (i - (lines - 1) / 2) * spacing;
+          ctx.beginPath();
+          ctx.moveTo(x1 + nx * offset, y1 + ny * offset);
+          ctx.lineTo(x2 + nx * offset, y2 + ny * offset);
+          ctx.strokeStyle = base;
+          ctx.lineWidth = Math.max(2, spacing * 0.55);
+          ctx.stroke();
+        }
       } else {
-        panToolBtn.classList.remove('bg-indigo-100', 'text-indigo-700');
-        showToast('그리기 모드로 복귀했습니다.');
+        const width = state.brushSize * (preset.widthMult || 1.0) * (0.75 + p * 0.45);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = base;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
       }
-      updateTransform();
-    };
-
-    canvasWrapper.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 0.15 : -0.15;
-      setZoom(state.zoom + delta);
-    }, { passive: false });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !state.isSpacePressed && document.activeElement.tagName !== 'INPUT') {
-        state.isSpacePressed = true;
-        updateTransform();
-      }
-    });
-
-    window.addEventListener('keyup', (e) => {
-      if (e.code === 'Space') {
-        state.isSpacePressed = false;
-        updateTransform();
-      }
-    });
-
-    function getCanvasCoords(e) {
-      const rect = mainCanvas.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left) * (mainCanvas.width / rect.width),
-        y: (e.clientY - rect.top) * (mainCanvas.height / rect.height)
-      };
+      ctx.restore();
     }
 
-    function computePressure(e, x, y) {
-      const now = performance.now();
-      let speedFactor = 0.6;
-
-      if (state.lastMoveTime) {
-        const dt = Math.max(1, now - state.lastMoveTime);
-        const dist = Math.hypot(x - state.lastMoveX, y - state.lastMoveY);
-        const speed = dist / dt;
-        const norm = Math.min(1, speed / 2.2);
-        speedFactor = 1 - norm * 0.85;
-      }
-
-      state.lastMoveTime = now;
-      state.lastMoveX = x;
-      state.lastMoveY = y;
-
-      let pressure;
-      const hasRealPressure = (e.pointerType === 'pen' || e.pointerType === 'touch')
-        && typeof e.pressure === 'number' && e.pressure > 0 && e.pressure !== 0.5;
-
-      if (hasRealPressure) {
-        pressure = e.pressure * 0.75 + speedFactor * 0.25;
-      } else {
-        pressure = speedFactor;
-      }
-
-      state.pressure = Math.min(1, Math.max(0.12, pressure));
-      updatePressureMeter();
-      return state.pressure;
-    }
-
-    function updatePressureMeter() {
-      const pct = Math.round(state.pressure * 100);
-      pressureMeterFill.style.width = state.isDrawing ? `${pct}%` : '0%';
-      pressureMeterVal.innerText = state.isDrawing ? `${pct}%` : '-';
-      pressureMeterFill.style.backgroundColor = state.pressure > 0.7 ? '#4338ca' : (state.pressure > 0.4 ? '#6366f1' : '#a5b4fc');
-    }
-
-    canvasWrapper.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
-
-      if (e.button === 1 || state.isPanToolActive || state.isSpacePressed) {
-        state.isPanning = true;
-        state.startMouseX = e.clientX - state.panX;
-        state.startMouseY = e.clientY - state.panY;
-        canvasWrapper.setPointerCapture(e.pointerId);
-        updateTransform();
-        return;
-      }
-
-      if (e.button === 0 || e.pointerType !== 'mouse') {
-        canvasWrapper.setPointerCapture(e.pointerId);
-        const { x, y } = getCanvasCoords(e);
-        state.lastMoveTime = 0;
-        const pressure = computePressure(e, x, y);
-        startDrawing(x, y, pressure);
-      }
-    });
-
-    canvasWrapper.addEventListener('pointermove', (e) => {
-      if (state.isPanning) {
-        state.panX = e.clientX - state.startMouseX;
-        state.panY = e.clientY - state.startMouseY;
-        updateTransform();
-        return;
-      }
-
-      if (state.isDrawing) {
-        const { x, y } = getCanvasCoords(e);
-        const pressure = computePressure(e, x, y);
-        draw(x, y, pressure);
-      }
-    });
-
-    function endPointerInteraction(e) {
-      if (state.isPanning) {
-        state.isPanning = false;
-        updateTransform();
-      }
-      stopDrawing();
-      updatePressureMeter();
-      if (e && e.pointerId !== undefined && canvasWrapper.hasPointerCapture && canvasWrapper.hasPointerCapture(e.pointerId)) {
-        canvasWrapper.releasePointerCapture(e.pointerId);
-      }
-    }
-
-    canvasWrapper.addEventListener('pointerup', endPointerInteraction);
-    canvasWrapper.addEventListener('pointercancel', endPointerInteraction);
-
-    canvasWrapper.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-    canvasWrapper.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-
-    function createNewStrokeLayer() {
-      const offscreen = document.createElement('canvas');
-      offscreen.width = mainCanvas.width;
-      offscreen.height = mainCanvas.height;
-      const oCtx = offscreen.getContext('2d');
-      return { canvas: offscreen, ctx: oCtx };
+    // Drawing Canvas Loop
+    function createNewLayer() {
+      const c = document.createElement('canvas');
+      c.width = mainCanvas.width; c.height = mainCanvas.height;
+      return { canvas: c, ctx: c.getContext('2d') };
     }
 
     function renderCompositeCanvas() {
       mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
       mainCtx.fillStyle = '#ffffff';
       mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-
-      state.strokeStack.forEach(layer => {
-        mainCtx.drawImage(layer.canvas, 0, 0);
-      });
+      state.strokeStack.forEach(layer => mainCtx.drawImage(layer.canvas, 0, 0));
     }
 
     function saveHistoryState() {
-      const stackSnapshot = state.strokeStack.map(layer => {
-        const copy = createNewStrokeLayer();
-        copy.ctx.drawImage(layer.canvas, 0, 0);
+      const snapshot = state.strokeStack.map(l => {
+        const copy = createNewLayer();
+        copy.ctx.drawImage(l.canvas, 0, 0);
         return copy;
       });
-
-      if (state.historyIndex < state.history.length - 1) {
-        state.history = state.history.slice(0, state.historyIndex + 1);
-      }
-      state.history.push(stackSnapshot);
-      if (state.history.length > state.maxHistory) {
-        state.history.shift();
-      }
+      state.history.push(snapshot);
       state.historyIndex = state.history.length - 1;
     }
 
-    function undo() {
-      if (state.historyIndex > 0) {
-        state.historyIndex--;
-        const snapshot = state.history[state.historyIndex];
-        state.strokeStack = snapshot.map(layer => {
-          const copy = createNewStrokeLayer();
-          copy.ctx.drawImage(layer.canvas, 0, 0);
-          return copy;
-        });
-        renderCompositeCanvas();
-        showToast('이전 단계로 돌아갔습니다.');
-      } else {
-        showToast('더 이상 취소할 단계가 없습니다.');
-      }
-    }
+    let activeLayer = null;
 
-    let currentActiveLayer = null;
-    let scratchTargetIndex = -1;
-
-    function startDrawing(x, y, pressure) {
-      const p = typeof pressure === 'number' ? pressure : 0.6;
+    function startDrawing(x, y, p) {
       state.isDrawing = true;
-      state.lastX = x;
-      state.lastY = y;
-      updatePressureMeter();
+      state.lastX = x; state.lastY = y;
+      activeLayer = createNewLayer();
+      state.strokeStack.push(activeLayer);
 
-      if (state.tool === 'scratch') {
-        scratchTargetIndex = findTopmostLayerIndexAt(x, y);
-        peelStrokeAt(x, y, p);
-        renderCompositeCanvas();
-      } else if (state.tool === 'smudge') {
-        if (state.strokeStack.length === 0) {
-          state.strokeStack.push(createNewStrokeLayer());
-        }
-        currentActiveLayer = state.strokeStack[state.strokeStack.length - 1];
-      } else {
-        currentActiveLayer = createNewStrokeLayer();
-        state.strokeStack.push(currentActiveLayer);
-        if (state.tool === 'impasto') {
-          state.impastoSeed = Math.random() * 1000;
-          state.impastoPhase = 0;
-          state.impastoLastDrawX = x;
-          state.impastoLastDrawY = y;
-        }
-        drawStroke(x, y, x, y, currentActiveLayer.ctx, p);
+      if (state.tool === 'impasto') {
+        drawImpastoKnifeStroke(x, y, x, y, activeLayer.ctx, p);
         renderCompositeCanvas();
       }
     }
 
-    function draw(x, y, pressure) {
+    function draw(x, y, p) {
       if (!state.isDrawing) return;
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-
-      if (state.tool === 'scratch') {
-        peelStrokeAt(x, y, p);
-      } else if (state.tool === 'smudge') {
-        applySmudge(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
-      } else if (state.tool === 'impasto') {
-        const segDist = Math.hypot(x - state.impastoLastDrawX, y - state.impastoLastDrawY);
-        const minSeg = Math.max(5, state.brushSize * 0.32);
-        if (segDist >= minSeg) {
-          drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, x, y, currentActiveLayer.ctx, p);
-          state.impastoLastDrawX = x;
-          state.impastoLastDrawY = y;
-        }
+      if (state.tool === 'impasto') {
+        drawImpastoKnifeStroke(state.lastX, state.lastY, x, y, activeLayer.ctx, p);
       } else {
-        drawStroke(state.lastX, state.lastY, x, y, currentActiveLayer.ctx, p);
+        activeLayer.ctx.beginPath();
+        activeLayer.ctx.moveTo(state.lastX, state.lastY);
+        activeLayer.ctx.lineTo(x, y);
+        activeLayer.ctx.strokeStyle = state.primaryColor;
+        activeLayer.ctx.lineWidth = state.brushSize;
+        activeLayer.ctx.lineCap = 'round';
+        activeLayer.ctx.globalAlpha = state.opacity;
+        activeLayer.ctx.stroke();
       }
-
-      state.lastX = x;
-      state.lastY = y;
+      state.lastX = x; state.lastY = y;
       renderCompositeCanvas();
     }
 
     function stopDrawing() {
       if (state.isDrawing) {
         state.isDrawing = false;
-        currentActiveLayer = null;
-        scratchTargetIndex = -1;
         saveHistoryState();
       }
     }
 
-    function findTopmostLayerIndexAt(x, y) {
-      for (let i = state.strokeStack.length - 1; i >= 0; i--) {
-        const ctx = state.strokeStack[i].ctx;
-        const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-        if (pixel[3] > 20) {
-          return i;
-        }
-      }
-      return -1;
-    }
-
-    function peelStrokeAt(x, y, pressure) {
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-      if (scratchTargetIndex < 0 || scratchTargetIndex >= state.strokeStack.length) {
-        scratchTargetIndex = findTopmostLayerIndexAt(x, y);
-      }
-
-      if (scratchTargetIndex >= 0) {
-        const targetCtx = state.strokeStack[scratchTargetIndex].ctx;
-        targetCtx.save();
-        targetCtx.globalCompositeOperation = 'destination-out';
-        targetCtx.globalAlpha = 0.3 + 0.7 * p;
-        targetCtx.beginPath();
-        targetCtx.arc(x, y, (state.brushSize / 2) * (0.85 + 0.25 * p), 0, Math.PI * 2);
-        targetCtx.fill();
-        targetCtx.restore();
-      }
-    }
-
-    function drawStroke(x1, y1, x2, y2, ctx, pressure) {
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-      if (state.tool === 'basic') {
-        const dist = Math.hypot(x2 - x1, y2 - y1);
-        const step = Math.max(1, state.brushSize / 5);
-        const maxD = Math.max(dist, step * 0.2);
-        for (let d = 0; d <= maxD; d += step) {
-          const ratio = Math.min(1, d / maxD);
-          drawPastelStamp(
-            x1 + (x2 - x1) * ratio,
-            y1 + (y2 - y1) * ratio,
-            state.primaryColor,
-            ctx,
-            p
-          );
-        }
-      } else if (state.tool === 'impasto') {
-        drawImpastoStroke(x1, y1, x2, y2, ctx, p);
-      }
-    }
-
-    function drawPastelStamp(x, y, color, ctx, pressure) {
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-      ctx.save();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = state.opacity * 0.4 * (0.35 + 0.85 * p);
-
-      const radius = (state.brushSize / 2) * (0.82 + 0.3 * p);
-      const count = Math.floor(radius * 8 * (0.4 + 0.85 * p));
-
-      for (let i = 0; i < count; i++) {
-        const r = Math.random() * radius;
-        const theta = Math.random() * Math.PI * 2;
-        const px = x + r * Math.cos(theta);
-        const py = y + r * Math.sin(theta);
-        const dotSize = (Math.random() * 2 + 1) * (0.75 + 0.4 * p);
-
-        ctx.fillRect(px, py, dotSize, dotSize);
-      }
-      ctx.restore();
-    }
-
-    function point(x, y) { return { x, y }; }
-
-    function impastoWobble(offset = 0) {
-      return Math.sin(
-        (state.impastoSeed || 0) * 0.017 +
-        (state.impastoPhase || 0) * 0.9 + offset
-      ) * 0.5;
-    }
-
-    function pastelNoise(n) {
-      const s = (state.impastoSeed || 0) * 12.9898 + n * 78.233 + (state.impastoPhase || 0) * 37.719;
-      return (Math.sin(s) * 43758.5453) % 1;
-    }
-
-    function pastelJitter(n, amount) {
-      return (pastelNoise(n) - 0.5) * amount;
-    }
-
-    function pastelStroke(ctx, x1, y1, x2, y2, color, alpha, width) {
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = Math.max(0.7, width);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function buildIrregularBlob(cx, cy, rx, ry, angle, count = 18, seedOffset = 0) {
-      const pts = [];
-      const c = Math.cos(angle), sn = Math.sin(angle);
-      for (let i = 0; i < count; i++) {
-        const a = (Math.PI * 2 * i) / count;
-        const n = 0.82 + 0.22 * (0.5 + pastelNoise(seedOffset + i * 2.31));
-        const lx = Math.cos(a) * rx * n;
-        const ly = Math.sin(a) * ry * (0.86 + 0.22 * (0.5 + pastelNoise(seedOffset + i * 4.17)));
-        pts.push(point(
-          cx + lx * c - ly * sn,
-          cy + lx * sn + ly * c
-        ));
-      }
-      return pts;
-    }
-
-    function fillPastelShape(ctx, pts, baseColor, alpha) {
-      ctx.save();
-      ctx.globalAlpha = alpha * 0.72;
-      ctx.fillStyle = baseColor;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function texturePastelShape(ctx, pts, baseColor, alpha, density, directionAngle, seedOffset = 0) {
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      pts.forEach(q => {
-        minX = Math.min(minX, q.x); minY = Math.min(minY, q.y);
-        maxX = Math.max(maxX, q.x); maxY = Math.max(maxY, q.y);
-      });
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.clip();
-
-      const { r, g, b } = hexToRgb(baseColor);
-      const dark = rgbToHex(r * 0.60, g * 0.60, b * 0.60);
-      const light = rgbToHex(Math.min(255,r * 1.20), Math.min(255,g * 1.20), Math.min(255,b * 1.20));
-      const count = Math.round(Math.min(190, Math.max(35, density)));
-
-      for (let i = 0; i < count; i++) {
-        const x = minX + (maxX - minX) * (0.5 + (pastelNoise(seedOffset + i * 3.17) - 0.5) * 1.02);
-        const y = minY + (maxY - minY) * (0.5 + (pastelNoise(seedOffset + i * 5.73) - 0.5) * 1.02);
-        const len = 1.5 + (0.5 + pastelNoise(seedOffset + i * 7.19)) * 6.0;
-        const width = 0.65 + (0.5 + pastelNoise(seedOffset + i * 9.11)) * 1.7;
-        const jitter = pastelJitter(seedOffset + i * 11.3, Math.PI * 0.42);
-        const a = alpha * (0.07 + (0.5 + pastelNoise(seedOffset + i * 13.7)) * 0.16);
-        const col = i % 7 === 0 ? light : (i % 9 === 0 ? dark : baseColor);
-        const ang = directionAngle + jitter;
-
-        pastelStroke(
-          ctx,
-          x - Math.cos(ang) * len * 0.5,
-          y - Math.sin(ang) * len * 0.5,
-          x + Math.cos(ang) * len * 0.5,
-          y + Math.sin(ang) * len * 0.5,
-          col,
-          a,
-          width
-        );
-      }
-      ctx.restore();
-    }
-
-    function roughPastelEdge(ctx, pts, baseColor, alpha, seedOffset = 0) {
-      for (let i = 0; i < pts.length; i++) {
-        const a = pts[i], b = pts[(i + 1) % pts.length];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const len = Math.hypot(dx, dy);
-        const steps = Math.max(1, Math.floor(len / 9));
-        for (let j = 0; j < steps; j++) {
-          if (pastelNoise(seedOffset + i * 17 + j * 2.1) < 0.22) continue;
-          const t = (j + 0.15 + pastelNoise(seedOffset + i * 19 + j)) / steps;
-          const x = a.x + dx * t;
-          const y = a.y + dy * t;
-          const nx = -dy / Math.max(1, len), ny = dx / Math.max(1, len);
-          const col = pastelNoise(seedOffset + i * 23 + j) > 0.55
-            ? adjustColorBrightness(baseColor, 0.55)
-            : adjustColorBrightness(baseColor, 1.15);
-          pastelStroke(ctx,
-            x + nx * pastelJitter(seedOffset + j, 2.5),
-            y + ny * pastelJitter(seedOffset + j + 1, 2.5),
-            x + nx * pastelJitter(seedOffset + j + 2, 2.5) + dx / Math.max(1,len) * 3,
-            y + ny * pastelJitter(seedOffset + j + 3, 2.5) + dy / Math.max(1,len) * 3,
-            col, alpha * 0.22, 1 + pastelNoise(j) * 1.5);
-        }
-      }
-    }
-
-    function drawDabberStamp(x, y, ctx, p) {
-      const size = state.brushSize * (0.78 + p * 0.52);
-      const angle = state.impastoAngle || 0;
-      const rx = size * (0.58 + p * 0.12);
-      const ry = size * (0.40 + p * 0.10);
-      const pts = buildIrregularBlob(x, y, rx, ry, angle, 20, 100);
-
-      const under = pts.map(q => ({x:q.x + size*.055, y:q.y + size*.08}));
-      fillPastelShape(ctx, under, adjustColorBrightness(state.primaryColor, .48), state.opacity * .48);
-      fillPastelShape(ctx, pts, state.primaryColor, state.opacity * (.80 + .16*p));
-      texturePastelShape(ctx, pts, state.primaryColor, state.opacity, 78, angle, 200);
-      roughPastelEdge(ctx, pts, state.primaryColor, state.opacity, 240);
-
-      const hi = buildIrregularBlob(x - rx*.12, y - ry*.18, rx*.48, ry*.17, angle, 12, 280);
-      texturePastelShape(ctx, hi, adjustColorBrightness(state.primaryColor, 1.18), state.opacity * .55, 28, angle, 300);
-    }
-
-    function drawThickPaintStroke(x1, y1, x2, y2, ctx, p) {
-      const dx = x2-x1, dy = y2-y1, dist = Math.hypot(dx,dy);
-      if (dist < .75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux = dx/dist, uy = dy/dist;
-      const nx = -uy, ny = ux;
-      const half = state.brushSize * (0.34 + 0.17*p);
-      const ex = Math.min(half*.65, dist*.28);
-      const a = {x:x1-ux*ex, y:y1-uy*ex}, b = {x:x2+ux*ex, y:y2+uy*ex};
-      const angle = Math.atan2(dy,dx);
-
-      const cap = [];
-      const segs = 18;
-      for(let i=0;i<segs;i++){
-        const t=i/(segs-1), px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
-        const edge=Math.sin(Math.PI*t);
-        cap.push(point(px+nx*half*(0.72+0.28*edge),py+ny*half*(0.72+0.28*edge)));
-      }
-      for(let i=segs-1;i>=0;i--){
-        const t=i/(segs-1), px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
-        const edge=Math.sin(Math.PI*t);
-        cap.push(point(px-nx*half*(0.72+0.28*edge),py-ny*half*(0.72+0.28*edge)));
-      }
-
-      fillPastelShape(ctx, cap, adjustColorBrightness(state.primaryColor,.52), state.opacity*.40);
-      fillPastelShape(ctx, cap, state.primaryColor, state.opacity*(.76+.20*p));
-      texturePastelShape(ctx, cap, state.primaryColor, state.opacity, 125, angle, 500);
-      roughPastelEdge(ctx, cap, state.primaryColor, state.opacity, 560);
-
-      for(let i=0;i<5;i++){
-        const off=(i-2)*half*.17;
-        pastelStroke(ctx,
-          a.x+nx*off-ux*2, a.y+ny*off-uy*2,
-          b.x+nx*off+ux*2, b.y+ny*off+uy*2,
-          i%2 ? adjustColorBrightness(state.primaryColor,1.12) : adjustColorBrightness(state.primaryColor,.76),
-          state.opacity*(.08+.035*p), Math.max(1,half*.035));
-      }
-    }
-
-    function drawRakeStroke(x1, y1, x2, y2, ctx, p) {
-      const dx=x2-x1, dy=y2-y1, dist=Math.hypot(dx,dy);
-      if(dist<.75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux=dx/dist, uy=dy/dist, nx=-uy, ny=ux;
-      const half=state.brushSize*(.36+.16*p);
-      const count=Math.max(5,Math.min(11,Math.round(state.brushSize/6)));
-
-      for(let i=0;i<count;i++){
-        const t=(i/(count-1))-.5;
-        const off=t*half*1.55;
-        const wob=impastoWobble(i*1.3)*half*.10;
-        const sx=x1+nx*(off+wob)-ux*2, sy=y1+ny*(off+wob)-uy*2;
-        const ex=x2+nx*(off-wob)+ux*2, ey=y2+ny*(off-wob)+uy*2;
-        const mini=half*(.075+.025*p);
-        const pts=[];
-        for(let j=0;j<12;j++){
-          const q=j/11, px=sx+(ex-sx)*q, py=sy+(ey-sy)*q;
-          const bulge=Math.sin(Math.PI*q)*mini;
-          pts.push(point(px+nx*bulge,py+ny*bulge));
-        }
-        for(let j=11;j>=0;j--){
-          const q=j/11, px=sx+(ex-sx)*q, py=sy+(ey-sy)*q;
-          const bulge=Math.sin(Math.PI*q)*mini;
-          pts.push(point(px-nx*bulge,py-ny*bulge));
-        }
-        fillPastelShape(ctx,pts,state.primaryColor,state.opacity*(.55+.18*p));
-        texturePastelShape(ctx,pts,state.primaryColor,state.opacity*.95,34,Math.atan2(dy,dx),700+i*31);
-        roughPastelEdge(ctx,pts,state.primaryColor,state.opacity*.8,760+i*31);
-      }
-    }
-
-    function draw3DSmudgeStroke(x1,y1,x2,y2,ctx,p){
-      const dx=x2-x1,dy=y2-y1,dist=Math.hypot(dx,dy);
-      if(dist<.75) return drawDabberStamp(x1,y1,ctx,p);
-      const ux=dx/dist,uy=dy/dist,nx=-uy,ny=ux;
-      const half=state.brushSize*(.27+.17*p);
-      const bend=impastoWobble(3.4)*half*.75;
-
-      const pts=[];
-      const seg=20;
-      for(let i=0;i<=seg;i++){
-        const q=i/seg, px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend;
-        const w=half*(.78+.22*Math.sin(Math.PI*q));
-        pts.push(point(px+nx*w,py+ny*w));
-      }
-      for(let i=seg;i>=0;i--){
-        const q=i/seg, px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend;
-        const w=half*(.78+.22*Math.sin(Math.PI*q));
-        pts.push(point(px-nx*w,py-ny*w));
-      }
-
-      fillPastelShape(ctx,pts,adjustColorBrightness(state.primaryColor,.50),state.opacity*.38);
-      fillPastelShape(ctx,pts,state.primaryColor,state.opacity*(.72+.20*p));
-      texturePastelShape(ctx,pts,state.primaryColor,state.opacity,105,Math.atan2(dy,dx),900);
-      roughPastelEdge(ctx,pts,state.primaryColor,state.opacity*.8,980);
-
-      for(let i=0;i<18;i++){
-        const q=(i+.5)/18;
-        const px=x1+(x2-x1)*q+nx*Math.sin(Math.PI*q)*bend+nx*half*.12;
-        const py=y1+(y2-y1)*q+ny*Math.sin(Math.PI*q)*bend+ny*half*.12;
-        const l=2+pastelNoise(1000+i)*6;
-        pastelStroke(ctx,px-ux*l,py-uy*l,px+ux*l,py+uy*l,
-          adjustColorBrightness(state.primaryColor,1.16),
-          state.opacity*(.06+.05*p),Math.max(1,half*.07));
-      }
-    }
-
-    function drawImpastoStroke(x1, y1, x2, y2, ctx, pressure) {
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-      const preset = IMPASTO_PRESETS[state.impastoBrush] || IMPASTO_PRESETS[1];
-      state.impastoAngle = Math.atan2(y2-y1, x2-x1);
-
-      if (preset.key === 'dabber') {
-        const dist=Math.hypot(x2-x1,y2-y1);
-        if(dist<.75) drawDabberStamp(x1,y1,ctx,p);
-        else {
-          const step=Math.max(4,state.brushSize*.28);
-          for(let d=0;d<=dist;d+=step){
-            const t=Math.min(1,d/dist);
-            drawDabberStamp(x1+(x2-x1)*t,y1+(y2-y1)*t,ctx,p);
-          }
-        }
-      } else if (preset.key === 'thick') {
-        drawThickPaintStroke(x1,y1,x2,y2,ctx,p);
-      } else if (preset.key === 'rake') {
-        drawRakeStroke(x1,y1,x2,y2,ctx,p);
-      } else {
-        draw3DSmudgeStroke(x1,y1,x2,y2,ctx,p);
-      }
-      state.impastoPhase=(state.impastoPhase||0)+.42;
-    }
-
-    function applySmudge(x1, y1, x2, y2, ctx, pressure) {
-      const p = typeof pressure === 'number' ? pressure : state.pressure;
-      const radius = state.brushSize / 2;
-      const sampleCanvas = document.createElement('canvas');
-      sampleCanvas.width = radius * 2;
-      sampleCanvas.height = radius * 2;
-      const sCtx = sampleCanvas.getContext('2d');
-
-      sCtx.drawImage(
-        mainCanvas,
-        Math.max(0, x1 - radius), Math.max(0, y1 - radius), radius * 2, radius * 2,
-        0, 0, radius * 2, radius * 2
-      );
-
-      ctx.save();
-      ctx.globalAlpha = 0.18 + 0.35 * p;
-      ctx.beginPath();
-      ctx.arc(x2, y2, radius, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(sampleCanvas, x2 - radius, y2 - radius);
-      ctx.restore();
-    }
-
-    const impastoBrushGrid = document.getElementById('impasto-brush-grid');
-    if (impastoBrushGrid) {
-      Object.entries(IMPASTO_PRESETS).forEach(([id, preset]) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'impasto-preset' + (Number(id) === state.impastoBrush ? ' active' : '');
-        button.dataset.impastoBrush = id;
-        button.setAttribute('aria-label', preset.name);
-        button.title = preset.name;
-
-        const label = document.createElement('span');
-        label.className = 'impasto-label';
-        label.innerText = preset.name;
-        button.appendChild(label);
-
-        button.onclick = () => {
-          state.impastoBrush = Number(id);
-          document.querySelectorAll('.impasto-preset').forEach(b => b.classList.remove('active'));
-          button.classList.add('active');
-          showToast(`${preset.name} 브러시 선택`);
-        };
-
-        impastoBrushGrid.appendChild(button);
-      });
-    }
-
-    const impastoBrushSettings = document.getElementById('impasto-brush-settings');
-
-    document.querySelectorAll('.tool-btn').forEach(btn => {
-      btn.onclick = () => {
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.tool = btn.getAttribute('data-tool');
-
-        if (impastoBrushSettings) {
-          impastoBrushSettings.classList.toggle('hidden', state.tool !== 'impasto');
-        }
-
-        const TIPS = {
-          basic: '기본 오일파스텔: 서걱거리는 특유의 질감 입자로 자유롭게 색을 표현하세요.',
-          scratch: '스크래치 툴: 겹쳐칠해진 오일파스텔을 긁어내면 바로 밑의 색상이 차례차례 벗겨져 나옵니다.',
-          impasto: '임파스토: 참고 브러시처럼 물감이 실제로 솟아 있는 덩어리와 표면 결을 표현합니다. Dabbers·Thick Paints·Rakes·3D Smudges 중에서 선택하세요.',
-          smudge: '스머지: 손가락이나 찰필로 문지르듯 색상을 부드럽게 번지고 섞이게 만듭니다.'
-        };
-        tipText.innerHTML = TIPS[state.tool];
-      };
+    canvasWrapper.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      const rect = mainCanvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (mainCanvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (mainCanvas.height / rect.height);
+      startDrawing(x, y, state.pressure);
     });
+
+    canvasWrapper.addEventListener('pointermove', (e) => {
+      if (!state.isDrawing) return;
+      const rect = mainCanvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (mainCanvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (mainCanvas.height / rect.height);
+      draw(x, y, state.pressure);
+    });
+
+    canvasWrapper.addEventListener('pointerup', stopDrawing);
+    canvasWrapper.addEventListener('pointercancel', stopDrawing);
+
+    document.getElementById('undo-btn').onclick = () => {
+      if (state.strokeStack.length > 0) {
+        state.strokeStack.pop();
+        renderCompositeCanvas();
+        showToast('이전 단계로 돌아갔습니다.');
+      }
+    };
+
+    document.getElementById('clear-btn').onclick = () => {
+      state.strokeStack = [];
+      renderCompositeCanvas();
+      showToast('캔버스가 초기화되었습니다.');
+    };
+
+    document.getElementById('download-btn').onclick = () => {
+      const link = document.createElement('a');
+      link.download = `${state.studentId}_오일파스텔.png`;
+      link.href = mainCanvas.toDataURL();
+      link.click();
+    };
 
     brushSizeInput.oninput = (e) => {
       state.brushSize = parseInt(e.target.value);
@@ -1474,331 +738,6 @@
 
     primaryColorInput.oninput = (e) => state.primaryColor = e.target.value;
 
-    refImageInput.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          refImage.src = evt.target.result;
-          refImage.classList.remove('hidden');
-          refPlaceholder.classList.add('hidden');
-
-          refImage.onload = () => {
-            const extracted = extract10ColorsFromImage(refImage);
-            renderExtractedPalette(extracted);
-          };
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
-    function extract10ColorsFromImage(imgEl) {
-      try {
-        const sampleCanvas = document.createElement('canvas');
-        const sampleSize = 80;
-        sampleCanvas.width = sampleSize;
-        sampleCanvas.height = sampleSize;
-        const ctx = sampleCanvas.getContext('2d');
-        ctx.drawImage(imgEl, 0, 0, sampleSize, sampleSize);
-
-        const imgData = ctx.getImageData(0, 0, sampleSize, sampleSize).data;
-        const colorSamples = [];
-
-        for (let i = 0; i < imgData.length; i += 8) {
-          const r = imgData[i];
-          const g = imgData[i + 1];
-          const b = imgData[i + 2];
-          const a = imgData[i + 3];
-          if (a < 128) continue;
-          colorSamples.push([r, g, b]);
-        }
-
-        if (colorSamples.length === 0) return [];
-
-        const k = 10;
-        let centers = [];
-        for (let i = 0; i < k; i++) {
-          const idx = Math.floor((i / k) * colorSamples.length);
-          centers.push([...colorSamples[idx]]);
-        }
-
-        for (let iter = 0; iter < 5; iter++) {
-          const clusters = Array.from({ length: k }, () => []);
-          colorSamples.forEach(p => {
-            let minDist = Infinity;
-            let closestIdx = 0;
-            centers.forEach((c, idx) => {
-              const dist = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2;
-              if (dist < minDist) {
-                minDist = dist;
-                closestIdx = idx;
-              }
-            });
-            clusters[closestIdx].push(p);
-          });
-
-          centers = clusters.map((cluster, idx) => {
-            if (cluster.length === 0) return centers[idx];
-            let sumR = 0, sumG = 0, sumB = 0;
-            cluster.forEach(p => {
-              sumR += p[0];
-              sumG += p[1];
-              sumB += p[2];
-            });
-            return [
-              Math.round(sumR / cluster.length),
-              Math.round(sumG / cluster.length),
-              Math.round(sumB / cluster.length)
-            ];
-          });
-        }
-
-        return centers.map(c => '#' + c.map(v => Math.min(255, Math.max(0, v)).toString(16).padStart(2, '0')).join(''));
-      } catch (err) {
-        console.error('Palette extraction error:', err);
-        return [];
-      }
-    }
-
-    function renderExtractedPalette(colors) {
-      const container = document.getElementById('extracted-color-grid');
-      const section = document.getElementById('extracted-palette-section');
-      if (!container || !section) return;
-
-      container.innerHTML = '';
-      if (!colors || colors.length === 0) {
-        section.classList.add('hidden');
-        return;
-      }
-
-      colors.forEach(hex => {
-        const btn = document.createElement('button');
-        btn.className = 'w-full h-7 rounded-lg border border-gray-300 shadow-sm transition transform hover:scale-110 cursor-pointer';
-        btn.style.backgroundColor = hex;
-        btn.title = `색상 선택: ${hex.toUpperCase()}`;
-        btn.onclick = () => {
-          state.primaryColor = hex;
-          primaryColorInput.value = hex;
-          pickedColorSwatch.style.backgroundColor = hex;
-          pickedColorCode.innerText = hex.toUpperCase();
-          showToast(`대표 색상 선택: ${hex.toUpperCase()}`);
-        };
-        container.appendChild(btn);
-      });
-
-      section.classList.remove('hidden');
-    }
-
-    function updateLoupeAndPick(e, isClick) {
-      if (!refImage.src || refImage.classList.contains('hidden')) return;
-
-      const imgCanvas = document.createElement('canvas');
-      imgCanvas.width = refImage.naturalWidth;
-      imgCanvas.height = refImage.naturalHeight;
-      const ctx = imgCanvas.getContext('2d');
-      ctx.drawImage(refImage, 0, 0);
-
-      const rect = refImage.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-        magnifierLoupe.classList.add('hidden');
-        return;
-      }
-
-      const normX = (clientX - rect.left) / rect.width;
-      const normY = (clientY - rect.top) / rect.height;
-
-      const imgX = Math.floor(normX * imgCanvas.width);
-      const imgY = Math.floor(normY * imgCanvas.height);
-
-      const zoomSize = 18;
-      loupeCtx.imageSmoothingEnabled = false;
-      loupeCtx.clearRect(0, 0, loupeCanvas.width, loupeCanvas.height);
-      loupeCtx.drawImage(
-        imgCanvas,
-        Math.max(0, imgX - zoomSize / 2), Math.max(0, imgY - zoomSize / 2), zoomSize, zoomSize,
-        0, 0, loupeCanvas.width, loupeCanvas.height
-      );
-
-      magnifierLoupe.style.left = `${clientX}px`;
-      magnifierLoupe.style.top = `${clientY - 60}px`;
-      magnifierLoupe.classList.remove('hidden');
-
-      if (isClick) {
-        const pixel = ctx.getImageData(imgX, imgY, 1, 1).data;
-        const hexColor = `#${((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1)}`;
-
-        state.primaryColor = hexColor;
-        primaryColorInput.value = hexColor;
-        pickedColorSwatch.style.backgroundColor = hexColor;
-        pickedColorCode.innerText = hexColor.toUpperCase();
-
-        showToast(`스포이드 색상 추출: ${hexColor.toUpperCase()}`);
-      }
-    }
-
-    refImageContainer.addEventListener('mousemove', (e) => updateLoupeAndPick(e, false));
-    refImageContainer.addEventListener('mouseleave', () => magnifierLoupe.classList.add('hidden'));
-    refImageContainer.addEventListener('click', (e) => updateLoupeAndPick(e, true));
-
-    undoBtn.onclick = undo;
-
-    clearBtn.onclick = () => {
-      state.strokeStack = [];
-      saveHistoryState();
-      renderCompositeCanvas();
-      showToast('캔버스가 초기화되었습니다.');
-    };
-
-    downloadBtn.onclick = () => {
-      const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = mainCanvas.width;
-      exportCanvas.height = mainCanvas.height;
-      const eCtx = exportCanvas.getContext('2d');
-
-      eCtx.drawImage(mainCanvas, 0, 0);
-
-      eCtx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-      eCtx.fillRect(15, mainCanvas.height - 45, 280, 30);
-      eCtx.fillStyle = '#ffffff';
-      eCtx.font = 'bold 13px "Nanum Gothic", sans-serif';
-      eCtx.fillText(`[오일파스텔 스튜디오] ${state.studentId} ${state.studentName}`, 25, mainCanvas.height - 25);
-
-      const link = document.createElement('a');
-      const fileName = state.studentId ? `${state.studentId}_${state.studentName}_오일파스텔.png` : 'my_oil_pastel.png';
-      link.download = fileName;
-      link.href = exportCanvas.toDataURL('image/png');
-      link.click();
-
-      showToast('작품이 이미지 파일로 저장되었습니다!');
-    };
-
-    padletBtn.onclick = () => {
-      window.open(state.padletUrl, '_blank');
-    };
-
-    padletSettingsBtn.onclick = () => {
-      padletUrlInput.value = state.padletUrl;
-      padletModal.classList.remove('hidden');
-    };
-
-    padletModalCancel.onclick = () => padletModal.classList.add('hidden');
-
-    padletModalSave.onclick = () => {
-      const url = padletUrlInput.value.trim();
-      if (url) {
-        state.padletUrl = url;
-        padletModal.classList.add('hidden');
-        showToast('패들렛 제출 링크가 저장되었습니다.');
-      }
-    };
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-msg');
-      toastMsg.innerText = msg;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 2500);
-    }
-
-    // --- Mobile Mode Logic & Mobile UI Handlers ---
-    function enableMobileMode() {
-      document.documentElement.classList.add('mobile-mode');
-      document.body.classList.add('mobile-mode');
-
-      const asides = document.querySelectorAll('main > aside');
-      if (asides.length >= 2) {
-        asides[0].classList.add('left-aside', 'mobile-panel-closed');
-        asides[1].classList.add('right-aside', 'mobile-panel-closed');
-      }
-
-      // Auto adjust canvas zoom for small screens
-      if (window.innerWidth < 640) {
-        state.zoom = Math.min(1.0, (window.innerWidth - 32) / mainCanvas.width);
-        updateTransform();
-      }
-
-      showToast('스마트폰 모바일 모드로 설정되었습니다.');
-    }
-
-    const leftAside = document.querySelectorAll('main > aside')[0];
-    const rightAside = document.querySelectorAll('main > aside')[1];
-
-    const mobileBtnTools = document.getElementById('mobile-btn-tools');
-    const mobileBtnCanvas = document.getElementById('mobile-btn-canvas');
-    const mobileBtnRef = document.getElementById('mobile-btn-ref');
-
-    if (mobileBtnTools && mobileBtnCanvas && mobileBtnRef) {
-      mobileBtnTools.onclick = () => {
-        if (leftAside) leftAside.classList.remove('mobile-panel-closed');
-        if (rightAside) rightAside.classList.add('mobile-panel-closed');
-        highlightMobileBtn('mobile-btn-tools');
-      };
-
-      mobileBtnCanvas.onclick = () => {
-        if (leftAside) leftAside.classList.add('mobile-panel-closed');
-        if (rightAside) rightAside.classList.add('mobile-panel-closed');
-        highlightMobileBtn('mobile-btn-canvas');
-      };
-
-      mobileBtnRef.onclick = () => {
-        if (rightAside) rightAside.classList.remove('mobile-panel-closed');
-        if (leftAside) leftAside.classList.add('mobile-panel-closed');
-        highlightMobileBtn('mobile-btn-ref');
-      };
-    }
-
-    function highlightMobileBtn(activeId) {
-      ['mobile-btn-tools', 'mobile-btn-canvas', 'mobile-btn-ref'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          if (id === activeId) {
-            btn.className = 'px-3.5 py-1.5 bg-indigo-600 text-white rounded-full flex items-center gap-1.5 transition';
-          } else {
-            btn.className = 'px-3.5 py-1.5 bg-slate-800 text-slate-300 rounded-full flex items-center gap-1.5 transition';
-          }
-        }
-      });
-    }
-
-    // 2-Finger Pinch Zoom for Mobile Mode
-    let initialPinchDist = null;
-    let initialPinchZoom = 1.0;
-
-    canvasWrapper.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2 && state.deviceMode === 'mobile') {
-        initialPinchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialPinchZoom = state.zoom;
-      }
-    }, { passive: true });
-
-    canvasWrapper.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2 && initialPinchDist && state.deviceMode === 'mobile') {
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const factor = currentDist / initialPinchDist;
-        setZoom(initialPinchZoom * factor);
-      }
-    }, { passive: true });
-
-    canvasWrapper.addEventListener('touchend', (e) => {
-      if (e.touches.length < 2) {
-        initialPinchDist = null;
-      }
-    });
-
-    // Initialize Canvas State
-    syncCanvasSizeControls();
     saveHistoryState();
     renderCompositeCanvas();
   </script>
