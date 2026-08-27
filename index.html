@@ -347,42 +347,42 @@
 <body class="h-screen flex flex-col overflow-hidden text-gray-800">
 
   <!-- Header Bar -->
-  <header class="bg-indigo-900 text-white px-6 py-3 flex items-center justify-between shadow-md z-10 shrink-0">
-    <div class="flex items-center space-x-3">
-      <div class="p-2 bg-indigo-700 rounded-lg shadow-inner">
-        <i class="fa-solid fa-palette text-xl text-amber-300"></i>
+  <header class="bg-indigo-900 text-white px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 shadow-md z-10 shrink-0 overflow-x-auto">
+    <div class="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
+      <div class="p-1.5 sm:p-2 bg-indigo-700 rounded-lg shadow-inner shrink-0">
+        <i class="fa-solid fa-palette text-base sm:text-xl text-amber-300"></i>
       </div>
-      <div>
-        <h1 class="text-lg font-bold leading-none">오일파스텔 스튜디오</h1>
-        <p class="text-xs text-indigo-300 mt-1">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
+      <div class="min-w-0">
+        <h1 class="text-sm sm:text-lg font-bold leading-none whitespace-nowrap truncate max-w-[38vw] sm:max-w-none">오일파스텔 스튜디오</h1>
+        <p class="hidden sm:block text-xs text-indigo-300 mt-1">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
       </div>
     </div>
 
     <!-- Actions & User Badge -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
       <!-- Undo / Clear -->
-      <div class="flex items-center bg-indigo-800/80 p-1 rounded-lg border border-indigo-700 space-x-1">
-        <button id="undo-btn" class="px-3 py-1.5 hover:bg-indigo-700 rounded text-xs flex items-center gap-1 transition" title="실행 취소">
+      <div class="flex items-center bg-indigo-800/80 p-1 rounded-lg border border-indigo-700 space-x-1 shrink-0">
+        <button id="undo-btn" class="px-2 sm:px-3 py-1.5 hover:bg-indigo-700 rounded text-xs flex items-center gap-1 transition whitespace-nowrap" title="실행 취소">
           <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">실행취소</span>
         </button>
-        <button id="clear-btn" class="px-3 py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-xs flex items-center gap-1 transition" title="전체 지우기">
+        <button id="clear-btn" class="px-2 sm:px-3 py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-xs flex items-center gap-1 transition whitespace-nowrap" title="전체 지우기">
           <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">전체 지우기</span>
         </button>
       </div>
 
       <!-- Export & Padlet Buttons -->
-      <button id="download-btn" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
-        <i class="fa-solid fa-download"></i> 작품 저장
+      <button id="download-btn" class="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition shrink-0 whitespace-nowrap" title="작품 저장">
+        <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">작품 저장</span>
       </button>
 
-      <button id="padlet-btn" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i> 패들렛 제출
+      <button id="padlet-btn" class="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition shrink-0 whitespace-nowrap" title="패들렛 제출">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">패들렛 제출</span>
       </button>
 
       <!-- Student Badge -->
-      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2">
+      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 sm:gap-2 shrink-0 whitespace-nowrap" title="로그인 필요">
         <i class="fa-solid fa-user-graduate text-amber-400"></i>
-        <span id="user-badge-text">로그인 필요</span>
+        <span id="user-badge-text" class="hidden sm:inline">로그인 필요</span>
       </div>
     </div>
   </header>
