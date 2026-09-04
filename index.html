@@ -347,42 +347,42 @@
 <body class="h-screen flex flex-col overflow-hidden text-gray-800">
 
   <!-- Header Bar -->
-  <header class="bg-indigo-900 text-white px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 shadow-md z-10 shrink-0 overflow-x-auto">
-    <div class="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
-      <div class="p-1.5 sm:p-2 bg-indigo-700 rounded-lg shadow-inner shrink-0">
-        <i class="fa-solid fa-palette text-base sm:text-xl text-amber-300"></i>
+  <header class="bg-indigo-900 text-white px-6 py-3 flex items-center justify-between shadow-md z-10 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-indigo-700 rounded-lg shadow-inner">
+        <i class="fa-solid fa-palette text-xl text-amber-300"></i>
       </div>
-      <div class="min-w-0">
-        <h1 class="text-sm sm:text-lg font-bold leading-none whitespace-nowrap truncate max-w-[38vw] sm:max-w-none">오일파스텔 스튜디오</h1>
-        <p class="hidden sm:block text-xs text-indigo-300 mt-1">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
+      <div>
+        <h1 class="text-lg font-bold leading-none">오일파스텔 스튜디오</h1>
+        <p class="text-xs text-indigo-300 mt-1">중학교 미술 수업 - 질감 기법 그리기 웹앱</p>
       </div>
     </div>
 
     <!-- Actions & User Badge -->
-    <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+    <div class="flex items-center space-x-3">
       <!-- Undo / Clear -->
-      <div class="flex items-center bg-indigo-800/80 p-1 rounded-lg border border-indigo-700 space-x-1 shrink-0">
-        <button id="undo-btn" class="px-2 sm:px-3 py-1.5 hover:bg-indigo-700 rounded text-xs flex items-center gap-1 transition whitespace-nowrap" title="실행 취소">
+      <div class="flex items-center bg-indigo-800/80 p-1 rounded-lg border border-indigo-700 space-x-1">
+        <button id="undo-btn" class="px-3 py-1.5 hover:bg-indigo-700 rounded text-xs flex items-center gap-1 transition" title="실행 취소">
           <i class="fa-solid fa-rotate-left"></i> <span class="hidden sm:inline">실행취소</span>
         </button>
-        <button id="clear-btn" class="px-2 sm:px-3 py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-xs flex items-center gap-1 transition whitespace-nowrap" title="전체 지우기">
+        <button id="clear-btn" class="px-3 py-1.5 hover:bg-rose-700/80 text-rose-200 rounded text-xs flex items-center gap-1 transition" title="전체 지우기">
           <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">전체 지우기</span>
         </button>
       </div>
 
       <!-- Export & Padlet Buttons -->
-      <button id="download-btn" class="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition shrink-0 whitespace-nowrap" title="작품 저장">
-        <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">작품 저장</span>
+      <button id="download-btn" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-download"></i> 작품 저장
       </button>
 
-      <button id="padlet-btn" class="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition shrink-0 whitespace-nowrap" title="패들렛 제출">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="hidden sm:inline">패들렛 제출</span>
+      <button id="padlet-btn" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> 패들렛 제출
       </button>
 
       <!-- Student Badge -->
-      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 sm:gap-2 shrink-0 whitespace-nowrap" title="로그인 필요">
+      <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2">
         <i class="fa-solid fa-user-graduate text-amber-400"></i>
-        <span id="user-badge-text" class="hidden sm:inline">로그인 필요</span>
+        <span id="user-badge-text">로그인 필요</span>
       </div>
     </div>
   </header>
@@ -736,7 +736,7 @@
       lastY: 0,
       history: [], // Stack of Canvas States for Undo
       historyIndex: -1,
-      maxHistory: 10,
+      maxHistory: 4,
       
       // Canvas Zoom & Pan State
       zoom: 1.0,
@@ -1363,6 +1363,27 @@
       renderCompositeCanvas();
     }
 
+    const MAX_LIVE_STROKE_LAYERS = 8; // 오래된 태블릿 대응: 더 자주(8장마다) 병합해 메모리 사용량을 낮게 유지
+
+    function flattenOldLayersIfNeeded() {
+      if (state.strokeStack.length <= MAX_LIVE_STROKE_LAYERS) return;
+
+      const keepCount = Math.ceil(MAX_LIVE_STROKE_LAYERS / 2);
+      const flattenCount = state.strokeStack.length - keepCount;
+
+      const merged = createNewStrokeLayer();
+      for (let i = 0; i < flattenCount; i++) {
+        merged.ctx.drawImage(state.strokeStack[i].canvas, 0, 0);
+      }
+      state.strokeStack = [merged, ...state.strokeStack.slice(flattenCount)];
+
+      // 합쳐진 이전 붓질들은 더 이상 개별적으로 되돌릴 수 없으므로,
+      // 되돌리기 기록을 지금 상태부터 새로 시작한다 (메모리를 계속 무한정 붙잡지 않기 위함).
+      state.history = [];
+      state.historyIndex = -1;
+      saveHistoryState();
+    }
+
     function stopDrawing() {
       if (state.isDrawing) {
         // 마지막에 남은 짧은 이동분도 끊기지 않도록 마무리 조각을 그린다.
@@ -1377,6 +1398,7 @@
         currentActiveLayer = null;
         scratchTargetIndex = -1;
         saveHistoryState();
+        flattenOldLayersIfNeeded();
       }
     }
 
@@ -1873,6 +1895,17 @@
 
     primaryColorInput.oninput = (e) => state.primaryColor = e.target.value;
 
+    let refSampleCanvas = null;
+    let refSampleCtx = null;
+
+    function rebuildRefSampleCanvas() {
+      refSampleCanvas = document.createElement('canvas');
+      refSampleCanvas.width = refImage.naturalWidth;
+      refSampleCanvas.height = refImage.naturalHeight;
+      refSampleCtx = refSampleCanvas.getContext('2d');
+      refSampleCtx.drawImage(refImage, 0, 0);
+    }
+
     refImageInput.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -1883,6 +1916,7 @@
           refPlaceholder.classList.add('hidden');
 
           refImage.onload = () => {
+            rebuildRefSampleCanvas();
             const extracted = extract10ColorsFromImage(refImage);
             renderExtractedPalette(extracted);
           };
@@ -1990,12 +2024,10 @@
 
     function updateLoupeAndPick(e, isClick) {
       if (!refImage.src || refImage.classList.contains('hidden')) return;
+      if (!refSampleCanvas) rebuildRefSampleCanvas();
 
-      const imgCanvas = document.createElement('canvas');
-      imgCanvas.width = refImage.naturalWidth;
-      imgCanvas.height = refImage.naturalHeight;
-      const ctx = imgCanvas.getContext('2d');
-      ctx.drawImage(refImage, 0, 0);
+      const imgCanvas = refSampleCanvas;
+      const ctx = refSampleCtx;
 
       const rect = refImage.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
