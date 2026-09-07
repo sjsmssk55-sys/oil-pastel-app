@@ -6,6 +6,35 @@
   <title>오일파스텔 아트 스튜디오 (Oil Pastel Art Class)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ====== 교사 접속 현황용 Firebase (선택 기능) ======
+       아래 firebaseConfig 안에 Firebase 콘솔에서 복사한 값을 붙여넣으세요.
+       비워두거나 값이 틀려도 그림 그리기 기능에는 전혀 영향이 없습니다(자동으로 이 기능만 꺼짐). -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDqkEjFmBq-VKiSHXQdzYob_3ylQpgxyPs",
+      authDomain: "oil-pastel-class.firebaseapp.com",
+      databaseURL: "https://oil-pastel-class-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "oil-pastel-class",
+      storageBucket: "oil-pastel-class.firebasestorage.app",
+      messagingSenderId: "624497194711",
+      appId: "1:624497194711:web:499191a60a0ab1f2a1a292"
+    };
+
+    let presenceDb = null;
+    try {
+      if (firebaseConfig.databaseURL) {
+        firebase.initializeApp(firebaseConfig);
+        presenceDb = firebase.database();
+      }
+    } catch (err) {
+      console.warn('접속 현황 기능(Firebase) 초기화 실패 - 그림 그리기 기능에는 영향 없음:', err);
+      presenceDb = null;
+    }
+  </script>
+  <!-- ====== Firebase 설정 끝 ====== -->
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts -->
@@ -935,7 +964,37 @@
       }
       loginModal.classList.add('hidden');
       showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
+      startPresenceHeartbeat(id, name);
     };
+
+    // --- 교사 접속 현황용 하트비트 (선택 기능, Firebase 미설정 시 자동으로 아무 동작 안 함) ---
+    function startPresenceHeartbeat(studentId, studentName) {
+      if (!presenceDb) return; // Firebase 설정 안 됨 -> 조용히 종료 (그림 기능엔 영향 없음)
+      try {
+        const safeId = String(studentId).replace(/[.#$\[\]/]/g, '_');
+        const studentRef = presenceDb.ref('students/' + safeId);
+
+        const writePresence = (online) => {
+          studentRef.update({
+            id: studentId,
+            name: studentName,
+            online: online,
+            lastActive: firebase.database.ServerValue.TIMESTAMP
+          }).catch(err => console.warn('접속 현황 갱신 실패:', err));
+        };
+
+        writePresence(true);
+        studentRef.onDisconnect().update({
+          online: false,
+          lastActive: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        // 20초마다 "저 아직 작업 중이에요" 신호만 아주 작게 전송
+        setInterval(() => writePresence(true), 20000);
+      } catch (err) {
+        console.warn('접속 현황 기능 오류 - 그림 그리기 기능에는 영향 없음:', err);
+      }
+    }
 
     // --- MOPV Numbered Oil Pastel Palette Logic ---
 
