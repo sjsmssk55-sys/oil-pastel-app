@@ -972,25 +972,38 @@
       if (!presenceDb) return; // Firebase 설정 안 됨 -> 조용히 종료 (그림 기능엔 영향 없음)
       try {
         const safeId = String(studentId).replace(/[.#$\[\]/]/g, '_');
-        const studentRef = presenceDb.ref('students/' + safeId);
 
-        const writePresence = (online) => {
-          studentRef.update({
-            id: studentId,
-            name: studentName,
-            online: online,
-            lastActive: firebase.database.ServerValue.TIMESTAMP
-          }).catch(err => console.warn('접속 현황 갱신 실패:', err));
-        };
+        // 선생님이 "수업 시작"을 눌러둔 현재 수업(세션)이 있을 때만 접속 기록을 남김
+        presenceDb.ref('meta/currentSessionId').once('value').then((snap) => {
+          const sessionId = snap.val();
+          if (!sessionId) return; // 진행 중인 수업이 없으면 기록 안 함 (학생 사용에는 영향 없음)
 
-        writePresence(true);
-        studentRef.onDisconnect().update({
-          online: false,
-          lastActive: firebase.database.ServerValue.TIMESTAMP
-        });
+          const studentRef = presenceDb.ref('sessions/' + sessionId + '/students/' + safeId);
 
-        // 20초마다 "저 아직 작업 중이에요" 신호만 아주 작게 전송
-        setInterval(() => writePresence(true), 20000);
+          studentRef.once('value').then((existingSnap) => {
+            const existing = existingSnap.val();
+            const firstSeen = (existing && existing.firstSeen) ? existing.firstSeen : firebase.database.ServerValue.TIMESTAMP;
+
+            const writePresence = (online) => {
+              studentRef.update({
+                id: studentId,
+                name: studentName,
+                online: online,
+                firstSeen: firstSeen,
+                lastActive: firebase.database.ServerValue.TIMESTAMP
+              }).catch(err => console.warn('접속 현황 갱신 실패:', err));
+            };
+
+            writePresence(true);
+            studentRef.onDisconnect().update({
+              online: false,
+              lastActive: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // 20초마다 "저 아직 작업 중이에요" 신호만 아주 작게 전송
+            setInterval(() => writePresence(true), 20000);
+          });
+        }).catch(err => console.warn('접속 현황 기능 오류 - 그림 그리기 기능에는 영향 없음:', err));
       } catch (err) {
         console.warn('접속 현황 기능 오류 - 그림 그리기 기능에는 영향 없음:', err);
       }
