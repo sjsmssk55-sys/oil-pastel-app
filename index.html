@@ -332,6 +332,36 @@
       overflow: hidden !important;
       overscroll-behavior: none !important;
     }
+    /* 헤더가 좁은 화면에서 억지로 한 줄에 눌려 글자가 세로로 쪼개지던 문제 수정: 줄바꿈 허용 */
+    body.mobile-mode header {
+      flex-wrap: wrap !important;
+      row-gap: 8px !important;
+      height: auto !important;
+      padding-top: 10px !important;
+      padding-bottom: 10px !important;
+    }
+    body.mobile-mode header > div {
+      flex-wrap: wrap !important;
+      row-gap: 6px !important;
+    }
+    body.mobile-mode header h1 {
+      font-size: 0.95rem !important;
+    }
+    body.mobile-mode header > div:first-child > div:last-child > p {
+      display: none !important; /* 부제목은 화면이 좁을 때는 숨김 */
+    }
+    body.mobile-mode #user-badge-text {
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* 하단 도구 전환 바가 열려있는 서랍(패널)과 겹치지 않도록 패널이 열리면 위로 띄움 */
+    #mobile-nav-bar.nav-raised {
+      bottom: calc(55dvh + 12px) !important;
+    }
     body.mobile-mode main {
       flex-direction: column !important;
       position: relative !important;
@@ -2243,6 +2273,7 @@
 
       // PC와 동일하게, 입장하면 도구 패널이 기본으로 열려있도록
       highlightMobileBtn('mobile-btn-tools');
+      setMobileNavRaised(true);
 
       showToast('스마트폰 모바일 모드로 설정되었습니다.');
     }
@@ -2252,17 +2283,26 @@
         if (leftAside) leftAside.classList.remove('mobile-panel-closed');
         if (rightAside) rightAside.classList.add('mobile-panel-closed');
         highlightMobileBtn('mobile-btn-tools');
+        setMobileNavRaised(true);
       };
       mobileBtnCanvas.onclick = () => {
         if (leftAside) leftAside.classList.add('mobile-panel-closed');
         if (rightAside) rightAside.classList.add('mobile-panel-closed');
         highlightMobileBtn('mobile-btn-canvas');
+        setMobileNavRaised(false);
       };
       mobileBtnRef.onclick = () => {
         if (rightAside) rightAside.classList.remove('mobile-panel-closed');
         if (leftAside) leftAside.classList.add('mobile-panel-closed');
         highlightMobileBtn('mobile-btn-ref');
+        setMobileNavRaised(true);
       };
+    }
+
+    function setMobileNavRaised(raised) {
+      const navBar = document.getElementById('mobile-nav-bar');
+      if (!navBar) return;
+      navBar.classList.toggle('nav-raised', raised);
     }
 
     // 두 손가락 핀치 줌 (모바일 모드에서만 동작, PC 모드에는 영향 없음)
