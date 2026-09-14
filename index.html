@@ -657,7 +657,7 @@
         </div>
       </div>
 
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair max-w-full max-h-full" style="width: 606px; height: 860px;">
+      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="width: 606px; height: 860px;">
         <!-- Shortcut Tip Badge -->
         <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
           <i class="fa-solid fa-circle-info text-amber-400"></i>
@@ -1251,9 +1251,13 @@
         usedHeight += child.offsetHeight + parseFloat(style.marginTop || 0) + parseFloat(style.marginBottom || 0);
       });
 
-      const margin = 24;
-      const availW = section.clientWidth - margin;
-      const availH = section.clientHeight - usedHeight - margin;
+      const sectionStyle = getComputedStyle(section);
+      const padX = parseFloat(sectionStyle.paddingLeft || 0) + parseFloat(sectionStyle.paddingRight || 0);
+      const padY = parseFloat(sectionStyle.paddingTop || 0) + parseFloat(sectionStyle.paddingBottom || 0);
+      const safety = 8; // 가장자리에 딱 붙지 않도록 약간의 여유
+
+      const availW = section.clientWidth - padX - safety;
+      const availH = section.clientHeight - padY - usedHeight - safety;
 
       const fitZoom = Math.min(1, availW / mainCanvas.width, availH / mainCanvas.height);
       state.zoom = Math.max(0.15, fitZoom);
