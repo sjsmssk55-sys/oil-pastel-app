@@ -657,7 +657,7 @@
         </div>
       </div>
 
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="width: 606px; height: 860px;">
+      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="aspect-ratio: 606 / 860; max-width: 606px; max-height: 860px; width: 100%; height: auto;">
         <!-- Shortcut Tip Badge -->
         <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
           <i class="fa-solid fa-circle-info text-amber-400"></i>
@@ -1022,7 +1022,8 @@
         enableMobileMode();
       }
       loginModal.classList.add('hidden');
-      fitCanvasToContainer(); // PC 모드로 태블릿에서 접속해도 비율 유지한 채 화면에 맞춤
+      syncCanvasContainerSize();
+      resetZoomAndPan(); // PC 모드로 태블릿에서 접속해도 비율 유지한 채 화면에 맞춤
       showToast(`${name} 학생, 오일파스텔 스튜디오 입장을 환영합니다!`);
       startPresenceHeartbeat(id, name);
     };
@@ -1167,8 +1168,6 @@
     function resizeCanvasTo(w, h) {
       mainCanvas.width = w;
       mainCanvas.height = h;
-      canvasWrapper.style.width = `${w}px`;
-      canvasWrapper.style.height = `${h}px`;
 
       // Existing stroke layers were rendered at the old resolution, so start fresh.
       state.strokeStack = [];
@@ -1176,7 +1175,8 @@
       state.historyIndex = -1;
       saveHistoryState();
       renderCompositeCanvas();
-      fitCanvasToContainer();
+      syncCanvasContainerSize();
+      resetZoomAndPan();
     }
 
     function applyCanvasSizeChange(presetKey, orientation) {
@@ -1237,10 +1237,13 @@
       updateTransform();
     }
 
-    // 캔버스 표시 영역(section) 크기에 맞춰, 가로/세로를 "같은 비율"로 줄여서
-    // A5 등 용지 비율이 찌그러지지 않도록 함 (CSS max-width/max-height는 가로/세로를
-    // 따로따로 줄여버려서 태블릿처럼 화면이 좁을 때 비율이 깨지는 문제가 있었음)
-    function fitCanvasToContainer() {
+    // 캔버스 상자 크기를 CSS aspect-ratio에 완전히 맡김 (JS로 줌 배율을 계산하던 기존
+    // 방식은 회전/리사이즈 타이밍에 따라 어긋날 여지가 있어서, 브라우저가 항상 정확하게
+    // 계산해주는 CSS 기능으로 교체함). 이 함수는 "이 안에서 벗어나지 말아야 할 최대
+    // 가로/세로 픽셀"만 알려주고, 실제 가로세로 비율 유지 계산은 CSS aspect-ratio가 함.
+    function syncCanvasContainerSize() {
+      canvasWrapper.style.aspectRatio = `${mainCanvas.width} / ${mainCanvas.height}`;
+
       const section = canvasWrapper.parentElement;
       if (!section) return;
 
@@ -1254,16 +1257,13 @@
       const sectionStyle = getComputedStyle(section);
       const padX = parseFloat(sectionStyle.paddingLeft || 0) + parseFloat(sectionStyle.paddingRight || 0);
       const padY = parseFloat(sectionStyle.paddingTop || 0) + parseFloat(sectionStyle.paddingBottom || 0);
-      const safety = 8; // 가장자리에 딱 붙지 않도록 약간의 여유
+      const safety = 8;
 
-      const availW = section.clientWidth - padX - safety;
-      const availH = section.clientHeight - padY - usedHeight - safety;
+      const availW = Math.max(50, section.clientWidth - padX - safety);
+      const availH = Math.max(50, section.clientHeight - padY - usedHeight - safety);
 
-      const fitZoom = Math.min(1, availW / mainCanvas.width, availH / mainCanvas.height);
-      state.zoom = Math.max(0.15, fitZoom);
-      state.panX = 0;
-      state.panY = 0;
-      updateTransform();
+      canvasWrapper.style.maxWidth = `${availW}px`;
+      canvasWrapper.style.maxHeight = `${availH}px`;
     }
 
     zoomInBtn.onclick = () => setZoom(state.zoom + 0.25);
@@ -2325,7 +2325,8 @@
       if (rightAside) rightAside.classList.add('right-aside', 'mobile-panel-closed');
 
       // 작은 화면에 맞춰 캔버스를 비율 그대로 축소 (가로/세로 따로 줄어 찌그러지지 않도록)
-      fitCanvasToContainer();
+      syncCanvasContainerSize();
+      resetZoomAndPan();
 
       // PC와 동일하게, 입장하면 도구 패널이 기본으로 열려있도록
       highlightMobileBtn('mobile-btn-tools');
@@ -2395,7 +2396,8 @@
     // 화면 회전이나 창 크기 변경 시에도 비율 깨지지 않게 다시 맞춤
     window.addEventListener('resize', () => {
       if (loginModal.classList.contains('hidden')) {
-        fitCanvasToContainer();
+        syncCanvasContainerSize();
+        resetZoomAndPan();
       }
     });
 
