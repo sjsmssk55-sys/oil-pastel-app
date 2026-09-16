@@ -467,6 +467,10 @@
         <i class="fa-solid fa-arrow-up-right-from-square"></i> <span class="header-btn-label">패들렛 제출</span>
       </button>
 
+      <button id="planning-tab-btn" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-list-check"></i> <span class="header-btn-label">제작 계획서</span>
+      </button>
+
       <!-- Student Badge -->
       <div id="user-badge" class="bg-indigo-950 text-indigo-200 border border-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2">
         <i class="fa-solid fa-user-graduate text-amber-400"></i>
@@ -604,71 +608,99 @@
 
     <!-- Center: Main Drawing Canvas -->
     <section class="flex-1 bg-gray-200 p-4 flex flex-col items-center justify-center relative overflow-hidden">
-      
-      <!-- Top Canvas Controls Toolbar (Placed outside canvas area) -->
-      <div class="w-full max-w-[900px] mb-2 flex items-center justify-between px-1 flex-wrap gap-y-2">
-        <div class="text-xs font-bold text-gray-600 flex items-center gap-1.5">
-          <i class="fa-solid fa-paint-roller text-indigo-600"></i>
-          <span>캔버스 영역</span>
-          <span id="canvas-size-label" class="text-gray-400 font-normal">A5 · 세로</span>
-        </div>
 
-        <div class="flex items-center gap-2 flex-wrap justify-end">
-          <!-- Canvas Size & Orientation Controls -->
-          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
-            <i class="fa-solid fa-crop-simple text-gray-400 text-xs px-1"></i>
-            <select id="canvas-size-select" class="text-xs font-bold text-gray-700 bg-transparent focus:outline-none cursor-pointer pr-1" title="용지 비율 선택">
-              <option value="a5">A5</option>
-              <option value="a4">A4</option>
-              <option value="b5">B5</option>
-              <option value="square">정사각형 (1:1)</option>
-              <option value="4:3">4:3</option>
-              <option value="16:9">16:9</option>
-            </select>
-            <div class="h-3.5 w-px bg-gray-200"></div>
-            <button id="orientation-portrait-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="세로 방향">
-              <i class="fa-solid fa-file"></i>
-              <span class="hidden sm:inline">세로</span>
-            </button>
-            <button id="orientation-landscape-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="가로 방향">
-              <i class="fa-solid fa-file fa-rotate-90"></i>
-              <span class="hidden sm:inline">가로</span>
-            </button>
+      <div id="drawing-view" class="w-full h-full flex flex-col items-center justify-center">
+        <!-- Top Canvas Controls Toolbar (Placed outside canvas area) -->
+        <div class="w-full max-w-[900px] mb-2 flex items-center justify-between px-1 flex-wrap gap-y-2">
+          <div class="text-xs font-bold text-gray-600 flex items-center gap-1.5">
+            <i class="fa-solid fa-paint-roller text-indigo-600"></i>
+            <span>캔버스 영역</span>
+            <span id="canvas-size-label" class="text-gray-400 font-normal">A5 · 세로</span>
           </div>
 
-          <!-- Zoom & Pan HUD Overlay Controls -->
-          <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
-            <button id="pan-tool-btn" class="px-2.5 py-1 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 rounded-lg text-xs font-bold transition flex items-center gap-1" title="화면 이동 (손바닥 툴 / 스페이스바)">
-              <i class="fa-solid fa-hand"></i>
-              <span class="hidden sm:inline">이동</span>
-            </button>
-            <div class="h-3.5 w-px bg-gray-200"></div>
-            <button id="zoom-out-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="축소">
-              <i class="fa-solid fa-magnifying-glass-minus"></i>
-            </button>
-            <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-1 min-w-[36px] text-center">100%</span>
-            <button id="zoom-in-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="확대">
-              <i class="fa-solid fa-magnifying-glass-plus"></i>
-            </button>
-            <button id="zoom-reset-btn" class="p-1 hover:bg-gray-100 text-gray-500 rounded-lg text-xs transition" title="원래 크기 (100%)">
-              <i class="fa-solid fa-rotate-right"></i>
-            </button>
+          <div class="flex items-center gap-2 flex-wrap justify-end">
+            <!-- Canvas Size & Orientation Controls -->
+            <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
+              <i class="fa-solid fa-crop-simple text-gray-400 text-xs px-1"></i>
+              <select id="canvas-size-select" class="text-xs font-bold text-gray-700 bg-transparent focus:outline-none cursor-pointer pr-1" title="용지 비율 선택">
+                <option value="a5">A5</option>
+                <option value="a4">A4</option>
+                <option value="b5">B5</option>
+                <option value="square">정사각형 (1:1)</option>
+                <option value="4:3">4:3</option>
+                <option value="16:9">16:9</option>
+              </select>
+              <div class="h-3.5 w-px bg-gray-200"></div>
+              <button id="orientation-portrait-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="세로 방향">
+                <i class="fa-solid fa-file"></i>
+                <span class="hidden sm:inline">세로</span>
+              </button>
+              <button id="orientation-landscape-btn" class="orientation-btn px-2 py-1 hover:bg-indigo-50 rounded-lg text-xs font-bold transition flex items-center gap-1" title="가로 방향">
+                <i class="fa-solid fa-file fa-rotate-90"></i>
+                <span class="hidden sm:inline">가로</span>
+              </button>
+            </div>
+
+            <!-- Zoom & Pan HUD Overlay Controls -->
+            <div class="flex items-center bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-1 space-x-1 select-none">
+              <button id="pan-tool-btn" class="px-2.5 py-1 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 rounded-lg text-xs font-bold transition flex items-center gap-1" title="화면 이동 (손바닥 툴 / 스페이스바)">
+                <i class="fa-solid fa-hand"></i>
+                <span class="hidden sm:inline">이동</span>
+              </button>
+              <div class="h-3.5 w-px bg-gray-200"></div>
+              <button id="zoom-out-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="축소">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+              </button>
+              <span id="zoom-val" class="text-xs font-bold text-indigo-600 px-1 min-w-[36px] text-center">100%</span>
+              <button id="zoom-in-btn" class="p-1 hover:bg-gray-100 rounded-lg text-gray-700 text-xs transition" title="확대">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </button>
+              <button id="zoom-reset-btn" class="p-1 hover:bg-gray-100 text-gray-500 rounded-lg text-xs transition" title="원래 크기 (100%)">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="width: 606px; height: 860px;">
+          <!-- Shortcut Tip Badge -->
+          <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-info text-amber-400"></i>
+            <span>휠: 확대/축소 | 스페이스바 + 드래그: 화면 이동</span>
+          </div>
+
+          <!-- Transform Layer for Canvas & Texture -->
+          <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
+            <!-- Main Interactive Canvas Layer -->
+            <canvas id="main-canvas" width="606" height="860" class="block w-full h-full"></canvas>
+            <div class="paper-texture"></div>
           </div>
         </div>
       </div>
 
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="width: 606px; height: 860px;">
-        <!-- Shortcut Tip Badge -->
-        <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-info text-amber-400"></i>
-          <span>휠: 확대/축소 | 스페이스바 + 드래그: 화면 이동</span>
+      <!-- 제작 계획서 모드: 왼쪽(기법/색상)·오른쪽(참고그림) 도구창은 그대로 공유하고
+           가운데 영역만 이 뷰로 바뀜. 그림 그리기 로직도 동일한 함수를 재사용함. -->
+      <div id="planning-view" class="hidden w-full h-full flex-col">
+        <div class="w-full max-w-[900px] mx-auto mb-2 flex items-center justify-between px-1">
+          <h2 class="text-xs font-bold text-gray-600 flex items-center gap-1.5">
+            <i class="fa-solid fa-list-check text-indigo-600"></i> 나만의 제작과정 계획서
+          </h2>
+          <div class="flex items-center gap-2">
+            <button id="planning-export-btn" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold rounded-lg text-xs flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> 계획서 저장
+            </button>
+            <button id="planning-close-btn" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-bold transition">
+              <i class="fa-solid fa-arrow-left"></i> 그리기로 돌아가기
+            </button>
+          </div>
         </div>
 
-        <!-- Transform Layer for Canvas & Texture -->
-        <div id="canvas-transform-layer" class="w-full h-full relative origin-center transition-transform duration-75">
-          <!-- Main Interactive Canvas Layer -->
-          <canvas id="main-canvas" width="606" height="860" class="block w-full h-full"></canvas>
-          <div class="paper-texture"></div>
+        <div id="planning-steps-container" class="flex-1 w-full overflow-y-auto px-1 space-y-6"></div>
+
+        <div class="shrink-0 pt-3 flex justify-center">
+          <button id="planning-add-step-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm rounded-xl shadow transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> 다음 단계 추가
+          </button>
         </div>
       </div>
     </section>
@@ -1016,6 +1048,8 @@
       state.studentId = id;
       state.studentName = name;
       userBadgeText.innerText = `${id} ${name}`;
+      tryRestoreMainCanvasAutosave(id);
+      tryRestorePlanningAutosave(id);
       const mode = document.getElementById('device-mode-select').value;
       state.deviceMode = mode;
       if (mode === 'mobile') {
@@ -1564,6 +1598,7 @@
         scratchTargetIndex = -1;
         saveHistoryState();
         flattenOldLayersIfNeeded();
+        autosaveMainCanvas();
       }
     }
 
@@ -1973,7 +2008,8 @@
       state.impastoPhase=(state.impastoPhase||0)+.42;
     }
 
-    function applySmudge(x1, y1, x2, y2, ctx, pressure) {
+    function applySmudge(x1, y1, x2, y2, ctx, pressure, sourceCanvas) {
+      const src = sourceCanvas || mainCanvas;
       const p = typeof pressure === 'number' ? pressure : state.pressure;
       const radius = state.brushSize / 2;
       const sampleCanvas = document.createElement('canvas');
@@ -1982,7 +2018,7 @@
       const sCtx = sampleCanvas.getContext('2d');
 
       sCtx.drawImage(
-        mainCanvas,
+        src,
         Math.max(0, x1 - radius), Math.max(0, y1 - radius), radius * 2, radius * 2,
         0, 0, radius * 2, radius * 2
       );
@@ -2404,6 +2440,501 @@
         resetZoomAndPan();
       }
     });
+
+    // --- 제작 계획서 (Planning Mode) ---
+    // 왼쪽(기법·색상)·오른쪽(참고그림) 도구창을 메인 캔버스와 동일하게 공유해서 씀.
+    // 실제 붓질 로직(drawStroke/drawImpastoStroke/applySmudge)도 메인 캔버스와 같은
+    // 함수를 그대로 재사용하되, 각 단계는 자기만의 작은(280x396) 레이어 스택을 따로
+    // 가지고 있어서 메인 캔버스의 undo 기록/메모리에는 전혀 영향을 주지 않음.
+    const PLANNING_CANVAS_W = 280;
+    const PLANNING_CANVAS_H = 396;
+    const PLANNING_MAX_LAYERS = 10;
+
+    let planningSteps = []; // { id, description, canvas, ctx, strokeStack, currentLayer, isDrawing, lastX, lastY, scratchTargetIndex }
+    let planningStepCounter = 0;
+    let planningClipboard = null; // 복사한 단계의 완성 이미지 (canvas)
+
+    const planningTabBtn = document.getElementById('planning-tab-btn');
+    const drawingView = document.getElementById('drawing-view');
+    const planningView = document.getElementById('planning-view');
+    const planningStepsContainer = document.getElementById('planning-steps-container');
+    const planningAddStepBtn = document.getElementById('planning-add-step-btn');
+    const planningCloseBtn = document.getElementById('planning-close-btn');
+    const planningExportBtn = document.getElementById('planning-export-btn');
+
+    function planningCreateLayer(step) {
+      const off = document.createElement('canvas');
+      off.width = step.canvas.width;
+      off.height = step.canvas.height;
+      return { canvas: off, ctx: off.getContext('2d') };
+    }
+
+    function planningRenderComposite(step) {
+      step.ctx.clearRect(0, 0, step.canvas.width, step.canvas.height);
+      step.ctx.fillStyle = '#ffffff';
+      step.ctx.fillRect(0, 0, step.canvas.width, step.canvas.height);
+      step.strokeStack.forEach(layer => step.ctx.drawImage(layer.canvas, 0, 0));
+    }
+
+    function planningFindTopmostLayerIndexAt(step, x, y) {
+      for (let i = step.strokeStack.length - 1; i >= 0; i--) {
+        const pixel = step.strokeStack[i].ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+        if (pixel[3] > 20) return i;
+      }
+      return -1;
+    }
+
+    function planningPeelStrokeAt(step, x, y, pressure) {
+      const p = typeof pressure === 'number' ? pressure : state.pressure;
+      if (step.scratchTargetIndex < 0 || step.scratchTargetIndex >= step.strokeStack.length) {
+        step.scratchTargetIndex = planningFindTopmostLayerIndexAt(step, x, y);
+      }
+      if (step.scratchTargetIndex >= 0) {
+        const targetCtx = step.strokeStack[step.scratchTargetIndex].ctx;
+        targetCtx.save();
+        targetCtx.globalCompositeOperation = 'destination-out';
+        targetCtx.globalAlpha = 0.3 + 0.7 * p;
+        targetCtx.beginPath();
+        targetCtx.arc(x, y, (state.brushSize / 2) * (0.85 + 0.25 * p), 0, Math.PI * 2);
+        targetCtx.fill();
+        targetCtx.restore();
+      }
+    }
+
+    function planningFlattenIfNeeded(step) {
+      if (step.strokeStack.length <= PLANNING_MAX_LAYERS) return;
+      const keep = Math.ceil(PLANNING_MAX_LAYERS / 2);
+      const flattenCount = step.strokeStack.length - keep;
+      const merged = planningCreateLayer(step);
+      for (let i = 0; i < flattenCount; i++) merged.ctx.drawImage(step.strokeStack[i].canvas, 0, 0);
+      step.strokeStack = [merged, ...step.strokeStack.slice(flattenCount)];
+    }
+
+    function planningStartDrawing(step, x, y) {
+      const p = state.pressure || 0.6;
+      step.isDrawing = true;
+      step.lastX = x;
+      step.lastY = y;
+
+      if (state.tool === 'scratch') {
+        step.scratchTargetIndex = planningFindTopmostLayerIndexAt(step, x, y);
+        planningPeelStrokeAt(step, x, y, p);
+        planningRenderComposite(step);
+      } else if (state.tool === 'smudge') {
+        if (step.strokeStack.length === 0) step.strokeStack.push(planningCreateLayer(step));
+        step.currentLayer = step.strokeStack[step.strokeStack.length - 1];
+      } else {
+        step.currentLayer = planningCreateLayer(step);
+        step.strokeStack.push(step.currentLayer);
+        if (state.tool === 'impasto') {
+          state.impastoSeed = Math.random() * 1000;
+          state.impastoPhase = 0;
+          state.impastoLastDrawX = x;
+          state.impastoLastDrawY = y;
+        }
+        drawStroke(x, y, x, y, step.currentLayer.ctx, p);
+        planningRenderComposite(step);
+      }
+    }
+
+    function planningDraw(step, x, y) {
+      if (!step.isDrawing) return;
+      const p = state.pressure || 0.6;
+
+      if (state.tool === 'scratch') {
+        planningPeelStrokeAt(step, x, y, p);
+      } else if (state.tool === 'smudge') {
+        applySmudge(step.lastX, step.lastY, x, y, step.currentLayer.ctx, p, step.canvas);
+      } else if (state.tool === 'impasto') {
+        const segDist = Math.hypot(x - state.impastoLastDrawX, y - state.impastoLastDrawY);
+        const minSeg = Math.max(5, state.brushSize * 0.32);
+        if (segDist >= minSeg) {
+          drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, x, y, step.currentLayer.ctx, p);
+          state.impastoLastDrawX = x;
+          state.impastoLastDrawY = y;
+        }
+      } else {
+        drawStroke(step.lastX, step.lastY, x, y, step.currentLayer.ctx, p);
+      }
+      step.lastX = x;
+      step.lastY = y;
+      planningRenderComposite(step);
+    }
+
+    function planningStopDrawing(step) {
+      if (!step.isDrawing) return;
+      if (state.tool === 'impasto' && step.currentLayer) {
+        const tailDist = Math.hypot(step.lastX - state.impastoLastDrawX, step.lastY - state.impastoLastDrawY);
+        if (tailDist > 0.6) {
+          drawImpastoStroke(state.impastoLastDrawX, state.impastoLastDrawY, step.lastX, step.lastY, step.currentLayer.ctx, state.pressure);
+          planningRenderComposite(step);
+        }
+      }
+      step.isDrawing = false;
+      step.currentLayer = null;
+      step.scratchTargetIndex = -1;
+      planningFlattenIfNeeded(step);
+      planningAutosave();
+    }
+
+    function attachPlanningPointerEvents(step) {
+      const canvas = step.canvas;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function start(e) {
+        e.preventDefault();
+        const pos = getPos(e);
+        planningStartDrawing(step, pos.x, pos.y);
+      }
+      function move(e) {
+        if (!step.isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        planningDraw(step, pos.x, pos.y);
+      }
+      function end() { planningStopDrawing(step); }
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', start, { passive: false });
+      canvas.addEventListener('touchmove', move, { passive: false });
+      canvas.addEventListener('touchend', end);
+    }
+
+    function createPlanningStep(copyFromCanvas) {
+      planningStepCounter++;
+      const canvas = document.createElement('canvas');
+      canvas.width = PLANNING_CANVAS_W;
+      canvas.height = PLANNING_CANVAS_H;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const step = {
+        id: planningStepCounter, description: '', canvas, ctx,
+        strokeStack: [], currentLayer: null, isDrawing: false,
+        lastX: 0, lastY: 0, scratchTargetIndex: -1
+      };
+
+      if (copyFromCanvas) {
+        const layer = planningCreateLayer(step);
+        layer.ctx.drawImage(copyFromCanvas, 0, 0, canvas.width, canvas.height);
+        step.strokeStack.push(layer);
+        planningRenderComposite(step);
+      }
+
+      planningSteps.push(step);
+      attachPlanningPointerEvents(step);
+      return step;
+    }
+
+    function removePlanningStep(id) {
+      if (planningSteps.length <= 1) {
+        showToast('최소 1단계는 있어야 해요.');
+        return;
+      }
+      if (!confirm('이 단계를 삭제할까요?')) return;
+      planningSteps = planningSteps.filter(s => s.id !== id);
+      renderPlanningSteps();
+      planningAutosave();
+    }
+
+    function addPlanningStep() {
+      const lastCanvas = planningSteps.length > 0 ? planningSteps[planningSteps.length - 1].canvas : null;
+      createPlanningStep(lastCanvas);
+      renderPlanningSteps();
+      requestAnimationFrame(() => {
+        planningStepsContainer.scrollTop = planningStepsContainer.scrollHeight;
+      });
+      planningAutosave();
+    }
+
+    function planningCopyStep(step) {
+      planningClipboard = document.createElement('canvas');
+      planningClipboard.width = step.canvas.width;
+      planningClipboard.height = step.canvas.height;
+      planningClipboard.getContext('2d').drawImage(step.canvas, 0, 0);
+      showToast('이 단계 그림을 복사했어요. 다른 단계에서 "붙여넣기"를 눌러보세요.');
+    }
+
+    function planningPasteInto(step) {
+      if (!planningClipboard) {
+        showToast('먼저 복사할 단계에서 "복사"를 눌러주세요.');
+        return;
+      }
+      const layer = planningCreateLayer(step);
+      layer.ctx.drawImage(planningClipboard, 0, 0, step.canvas.width, step.canvas.height);
+      step.strokeStack.push(layer);
+      planningRenderComposite(step);
+      planningFlattenIfNeeded(step);
+      planningAutosave();
+      showToast('붙여넣었습니다.');
+    }
+
+    function renderPlanningSteps() {
+      planningStepsContainer.innerHTML = '';
+
+      planningSteps.forEach((step, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow p-4 max-w-md mx-auto';
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold text-sm">${idx + 1}</span>
+            <div class="flex items-center gap-3">
+              <button data-copy-id="${step.id}" class="text-gray-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-copy"></i> 복사</button>
+              <button data-paste-id="${step.id}" class="text-gray-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-paste"></i> 붙여넣기</button>
+              ${planningSteps.length > 1 ? `<button data-remove-id="${step.id}" class="text-gray-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash-can"></i> 삭제</button>` : ''}
+            </div>
+          </div>
+          <textarea data-desc-id="${step.id}" rows="2" placeholder="이 단계에서 무엇을 하는지 적어보세요. (예: 연필로 스케치합니다)"
+            class="w-full text-sm border border-gray-200 rounded-xl p-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+          <div class="flex justify-center mb-2">
+            <div data-canvas-slot="${step.id}" class="border border-gray-300 rounded-lg overflow-hidden shadow-inner" style="width:${PLANNING_CANVAS_W}px;height:${PLANNING_CANVAS_H}px;"></div>
+          </div>
+          <div class="flex items-center justify-center">
+            <button data-clear-id="${step.id}" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-[11px] font-bold text-gray-600">전체 지우기</button>
+          </div>
+        `;
+
+        planningStepsContainer.appendChild(card);
+        card.querySelector(`[data-desc-id="${step.id}"]`).value = step.description;
+
+        const canvasSlot = card.querySelector(`[data-canvas-slot="${step.id}"]`);
+        step.canvas.style.width = '100%';
+        step.canvas.style.height = '100%';
+        step.canvas.style.display = 'block';
+        step.canvas.style.touchAction = 'none';
+        step.canvas.style.cursor = 'crosshair';
+        canvasSlot.appendChild(step.canvas);
+
+        card.querySelector(`[data-desc-id="${step.id}"]`).oninput = (e) => {
+          step.description = e.target.value;
+          planningAutosave();
+        };
+        card.querySelector(`[data-copy-id="${step.id}"]`).onclick = () => planningCopyStep(step);
+        card.querySelector(`[data-paste-id="${step.id}"]`).onclick = () => planningPasteInto(step);
+        card.querySelector(`[data-clear-id="${step.id}"]`).onclick = () => {
+          if (!confirm('이 단계 그림을 전체 지울까요?')) return;
+          step.strokeStack = [];
+          planningRenderComposite(step);
+          planningAutosave();
+        };
+        const removeBtn = card.querySelector(`[data-remove-id="${step.id}"]`);
+        if (removeBtn) removeBtn.onclick = () => removePlanningStep(step.id);
+      });
+    }
+
+    function openPlanningMode() {
+      if (planningSteps.length === 0) createPlanningStep(null);
+      renderPlanningSteps();
+      drawingView.classList.add('hidden');
+      planningView.classList.remove('hidden');
+      planningView.classList.add('flex');
+    }
+
+    function closePlanningMode() {
+      planningView.classList.add('hidden');
+      planningView.classList.remove('flex');
+      drawingView.classList.remove('hidden');
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const chars = String(text || '').split('');
+      let line = '';
+      let curY = y;
+      for (let i = 0; i < chars.length; i++) {
+        const testLine = line + chars[i];
+        if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+          ctx.fillText(line, x, curY);
+          line = chars[i];
+          curY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, curY);
+    }
+
+    function exportPlanningGroup(group, groupIndex, totalGroups) {
+      const padding = 24;
+      const textHeight = 70;
+      const cardW = PLANNING_CANVAS_W + padding * 2;
+      const cardH = PLANNING_CANVAS_H + textHeight + padding * 2;
+      const cols = 2;
+      const rows = Math.ceil(group.length / cols);
+
+      const sheet = document.createElement('canvas');
+      sheet.width = cardW * cols;
+      sheet.height = cardH * rows + 50;
+      const sCtx = sheet.getContext('2d');
+      sCtx.fillStyle = '#ffffff';
+      sCtx.fillRect(0, 0, sheet.width, sheet.height);
+
+      sCtx.fillStyle = '#111827';
+      sCtx.font = 'bold 20px "Nanum Gothic", sans-serif';
+      const rangeLabel = totalGroups > 1 ? ` (${groupIndex * 4 + 1}~${groupIndex * 4 + group.length}단계)` : '';
+      sCtx.fillText(`${state.studentName || ''} 학생의 제작과정 계획서${rangeLabel}`, 20, 32);
+
+      group.forEach((step, idx) => {
+        const globalIdx = groupIndex * 4 + idx;
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
+        const x = col * cardW + padding;
+        const y = row * cardH + 50 + padding;
+
+        sCtx.strokeStyle = '#d1d5db';
+        sCtx.strokeRect(x, y, PLANNING_CANVAS_W, PLANNING_CANVAS_H);
+        sCtx.drawImage(step.canvas, x, y);
+
+        sCtx.fillStyle = '#4f46e5';
+        sCtx.font = 'bold 14px "Nanum Gothic", sans-serif';
+        sCtx.fillText(`${globalIdx + 1}단계`, x, y - 8);
+
+        sCtx.fillStyle = '#374151';
+        sCtx.font = '12px "Nanum Gothic", sans-serif';
+        wrapText(sCtx, step.description || '(설명 없음)', x, y + PLANNING_CANVAS_H + 16, PLANNING_CANVAS_W, 16);
+      });
+
+      const link = document.createElement('a');
+      const suffix = totalGroups > 1 ? `_${groupIndex + 1}` : '';
+      const fileName = state.studentId ? `${state.studentId}_${state.studentName}_제작계획서${suffix}.png` : `my_plan${suffix}.png`;
+      link.download = fileName;
+      link.href = sheet.toDataURL('image/png');
+      link.click();
+    }
+
+    planningTabBtn.onclick = openPlanningMode;
+    planningCloseBtn.onclick = closePlanningMode;
+    planningAddStepBtn.onclick = addPlanningStep;
+
+    planningExportBtn.onclick = () => {
+      const groupSize = 4;
+      const groups = [];
+      for (let i = 0; i < planningSteps.length; i += groupSize) {
+        groups.push(planningSteps.slice(i, i + groupSize));
+      }
+      groups.forEach((group, gIdx) => {
+        setTimeout(() => exportPlanningGroup(group, gIdx, groups.length), gIdx * 400);
+      });
+      if (groups.length > 1) {
+        showToast(`${groups.length}장의 이미지로 나눠서 저장됩니다!`);
+      } else {
+        showToast('제작과정 계획서가 이미지로 저장되었습니다!');
+      }
+    };
+
+    // --- 중간 저장 / 이어서 불러오기 (Autosave & Resume) ---
+    // 태블릿이 튕겨서 새로고침되어도 그림/계획서를 잃지 않도록, 학번별로
+    // 브라우저(localStorage)에 주기적으로 자동 저장하고 로그인 시 복원 여부를 물어봄.
+    const AUTOSAVE_PREFIX = 'oilpastel_autosave_';
+
+    function autosaveMainCanvas() {
+      if (!state.studentId) return;
+      try {
+        const payload = {
+          dataUrl: mainCanvas.toDataURL('image/jpeg', 0.72),
+          canvasPreset: state.canvasPreset,
+          canvasOrientation: state.canvasOrientation,
+          savedAt: Date.now()
+        };
+        localStorage.setItem(AUTOSAVE_PREFIX + state.studentId, JSON.stringify(payload));
+      } catch (err) {
+        console.warn('자동 저장 실패(용량 초과 등) - 그림 기능에는 영향 없음:', err);
+      }
+    }
+
+    function planningAutosave() {
+      if (!state.studentId) return;
+      try {
+        const payload = {
+          steps: planningSteps.map(s => ({ description: s.description, dataUrl: s.canvas.toDataURL('image/jpeg', 0.8) })),
+          savedAt: Date.now()
+        };
+        localStorage.setItem(AUTOSAVE_PREFIX + state.studentId + '_plan', JSON.stringify(payload));
+      } catch (err) {
+        console.warn('계획서 자동 저장 실패 - 기능에는 영향 없음:', err);
+      }
+    }
+
+    function tryRestoreMainCanvasAutosave(studentId) {
+      try {
+        const raw = localStorage.getItem(AUTOSAVE_PREFIX + studentId);
+        if (!raw) return;
+        const payload = JSON.parse(raw);
+        if (!payload || !payload.dataUrl) return;
+
+        const minutesAgo = Math.max(0, Math.round((Date.now() - (payload.savedAt || 0)) / 60000));
+        const wantsRestore = confirm(`이전에 저장된 그림(${minutesAgo}분 전)이 있어요. 이어서 그리시겠어요?\n(취소를 누르면 새로 시작합니다)`);
+        if (!wantsRestore) {
+          localStorage.removeItem(AUTOSAVE_PREFIX + studentId);
+          return;
+        }
+
+        if (payload.canvasPreset && payload.canvasOrientation) {
+          state.canvasPreset = payload.canvasPreset;
+          state.canvasOrientation = payload.canvasOrientation;
+          const dims = computeCanvasDimensions(payload.canvasPreset, payload.canvasOrientation);
+          mainCanvas.width = dims.w;
+          mainCanvas.height = dims.h;
+          syncCanvasSizeControls();
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          state.strokeStack = [];
+          const layer = createNewStrokeLayer();
+          layer.ctx.drawImage(img, 0, 0, mainCanvas.width, mainCanvas.height);
+          state.strokeStack.push(layer);
+          state.history = [];
+          state.historyIndex = -1;
+          saveHistoryState();
+          renderCompositeCanvas();
+          syncCanvasContainerSize();
+          showToast('이전 작업을 이어서 불러왔습니다!');
+        };
+        img.src = payload.dataUrl;
+      } catch (err) {
+        console.warn('이전 작업 불러오기 실패 - 그림 기능에는 영향 없음:', err);
+      }
+    }
+
+    function tryRestorePlanningAutosave(studentId) {
+      try {
+        const raw = localStorage.getItem(AUTOSAVE_PREFIX + studentId + '_plan');
+        if (!raw) return;
+        const payload = JSON.parse(raw);
+        if (!payload || !Array.isArray(payload.steps) || payload.steps.length === 0) return;
+
+        let loaded = 0;
+        payload.steps.forEach((s, i) => {
+          const step = createPlanningStep(null);
+          step.description = s.description || '';
+          const img = new Image();
+          img.onload = () => {
+            const layer = planningCreateLayer(step);
+            layer.ctx.drawImage(img, 0, 0, step.canvas.width, step.canvas.height);
+            step.strokeStack.push(layer);
+            planningRenderComposite(step);
+            loaded++;
+            if (loaded === payload.steps.length) renderPlanningSteps();
+          };
+          img.src = s.dataUrl;
+        });
+      } catch (err) {
+        console.warn('계획서 불러오기 실패 - 기능에는 영향 없음:', err);
+      }
+    }
 
     // Initialize Canvas State
     syncCanvasSizeControls();
