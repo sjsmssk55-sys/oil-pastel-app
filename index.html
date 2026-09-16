@@ -657,7 +657,7 @@
         </div>
       </div>
 
-      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="aspect-ratio: 606 / 860; max-width: 606px; max-height: 860px; width: 100%; height: auto;">
+      <div id="canvas-wrapper" class="canvas-container rounded-2xl overflow-hidden relative cursor-crosshair" style="width: 606px; height: 860px;">
         <!-- Shortcut Tip Badge -->
         <div class="absolute bottom-3 left-3 z-20 bg-gray-900/70 text-white text-[11px] px-3 py-1.5 rounded-lg pointer-events-none backdrop-blur-sm shadow flex items-center gap-1.5">
           <i class="fa-solid fa-circle-info text-amber-400"></i>
@@ -1242,8 +1242,6 @@
     // 계산해주는 CSS 기능으로 교체함). 이 함수는 "이 안에서 벗어나지 말아야 할 최대
     // 가로/세로 픽셀"만 알려주고, 실제 가로세로 비율 유지 계산은 CSS aspect-ratio가 함.
     function syncCanvasContainerSize() {
-      canvasWrapper.style.aspectRatio = `${mainCanvas.width} / ${mainCanvas.height}`;
-
       const section = canvasWrapper.parentElement;
       if (!section) return;
 
@@ -1262,8 +1260,14 @@
       const availW = Math.max(50, section.clientWidth - padX - safety);
       const availH = Math.max(50, section.clientHeight - padY - usedHeight - safety);
 
-      canvasWrapper.style.maxWidth = `${availW}px`;
-      canvasWrapper.style.maxHeight = `${availH}px`;
+      // 브라우저의 CSS 계산(aspect-ratio 등)에 맡기지 않고, 최종 가로/세로 픽셀값을
+      // 직접 계산해서 그대로 못박음 - 기기/브라우저에 따라 달라질 여지를 없앰
+      const fitZoom = Math.min(1, availW / mainCanvas.width, availH / mainCanvas.height);
+      const finalW = Math.round(mainCanvas.width * fitZoom);
+      const finalH = Math.round(mainCanvas.height * fitZoom);
+
+      canvasWrapper.style.width = `${finalW}px`;
+      canvasWrapper.style.height = `${finalH}px`;
     }
 
     zoomInBtn.onclick = () => setZoom(state.zoom + 0.25);
